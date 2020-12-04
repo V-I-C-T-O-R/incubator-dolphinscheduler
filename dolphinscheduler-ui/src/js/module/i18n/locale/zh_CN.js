@@ -346,6 +346,8 @@ export default {
   Delete: '删除',
   'Please enter keyword': '请输入关键词',
   'File Upload': '文件上传',
+  'File Directory':'文件夹',
+  'Please enter File Directory':'请输入文件夹,默认路径"/",自定义路径例如:example/test',
   'Drag the file into the current upload window': '请将文件拖拽到当前上传窗口内！',
   'Drag area upload': '拖动区域上传',
   Upload: '上传',

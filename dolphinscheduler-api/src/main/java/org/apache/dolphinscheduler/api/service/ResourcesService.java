@@ -624,6 +624,13 @@ public class ResourcesService extends BaseService {
             if (!HadoopUtils.getInstance().exists(resourcePath)) {
                 createTenantDirIfNotExists(tenantCode);
             }
+
+            // add create dir for customized
+            String fileDirName = FileUtils.dirName(fullName) ;
+            String hdfsDirPath = HadoopUtils.getHdfsFileName(type,tenantCode,fileDirName);
+            if (!HadoopUtils.getInstance().exists(hdfsDirPath)) {
+                HadoopUtils.getInstance().mkdir(hdfsDirPath);
+            }
             org.apache.dolphinscheduler.api.utils.FileUtils.copyFile(file, localFilename);
             HadoopUtils.getInstance().copyLocalToHdfs(localFilename, hdfsFilename, true, true);
         } catch (Exception e) {

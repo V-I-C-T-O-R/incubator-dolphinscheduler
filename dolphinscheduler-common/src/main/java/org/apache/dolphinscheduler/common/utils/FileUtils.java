@@ -78,6 +78,23 @@ public class FileUtils {
     }
 
     /**
+     * get file suffix
+     *
+     * @param filename file name
+     * @return file suffix
+     */
+    public static String dirName(String filename) {
+        String dirName = "";
+        if (StringUtils.isNotEmpty(filename)) {
+            int lastIndex = filename.lastIndexOf('/');
+            if (lastIndex > 0) {
+                dirName = filename.substring(0,lastIndex);
+            }
+        }
+        return dirName;
+    }
+
+    /**
      * get download file absolute path and name
      *
      * @param filename file name

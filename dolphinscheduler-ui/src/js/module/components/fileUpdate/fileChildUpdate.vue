@@ -55,6 +55,19 @@
               </x-input>
             </template>
           </m-list-box-f>
+
+          <m-list-box-f>
+                      <template slot="name">{{$t('File Directory')}}</template>
+                      <template slot="content">
+                        <x-input
+                                type="input"
+                                v-model="directory"
+                                :disabled="progress !== 0"
+                                :placeholder="$t('Please enter File Directory')"
+                                autocomplete="off">
+                        </x-input>
+                      </template>
+          </m-list-box-f>
           <m-list-box-f>
             <template slot="name">{{$t('Description')}}</template>
             <template slot="content">
@@ -102,6 +115,8 @@
         store,
         // name
         name: '',
+        // directory
+        directory:'',
         // description
         description: '',
         // progress
@@ -128,7 +143,7 @@
         this.$refs['popup'].spinnerLoading = true
         if (this._validation()) {
           this.store.dispatch('resource/resourceVerifyName', {
-            fullName: this.currentDir+'/'+this.name,
+            fullName: this.currentDir + '/' + this.directory +'/'+this.name,
             type: this.type
           }).then(res => {
             const isLt1024M = this.file.size / 1024 / 1024 < 1024
@@ -177,7 +192,7 @@
           formData.append('type', this.type)
           formData.append('name', this.name)
           formData.append('pid', this.pid)
-          formData.append('currentDir', this.currentDir)
+          formData.append('currentDir', this.currentDir + '/' + this.directory)
           formData.append('description', this.description)
           io.post(`resources/create`, res => {
             this.$message.success(res.msg)

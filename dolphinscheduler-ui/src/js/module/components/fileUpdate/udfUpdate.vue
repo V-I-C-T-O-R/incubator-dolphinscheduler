@@ -13,7 +13,7 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- */ 
+ */
 <template>
   <div class="update-udf-model">
     <div class="update-udf-box">
@@ -34,6 +34,18 @@
               <x-button type="dashed" size="small" :disabled="progress !== 0"> {{$t('Upload')}} </x-button>
             </div>
           </div>
+        </li>
+
+        <li>
+           <x-input
+                  type="input"
+                  size="small"
+                  v-model="directory"
+                  :disabled="progress !== 0"
+                  style="width: 535px"
+                  :placeholder="$t('Please enter File Directory')"
+                  autocomplete="off">
+          </x-input>
         </li>
         <li>
           <x-input
@@ -63,6 +75,8 @@
       return {
         store,
         udfName: '',
+        // directory
+        directory:'',
         udfDesc: '',
         file: '',
         progress: 0,
@@ -96,7 +110,7 @@
       _verifyName () {
         return new Promise((resolve, reject) => {
           this.store.dispatch('resource/resourceVerifyName', {
-            fullName: '/'+this.currentDir+'/'+this.udfName,
+            fullName: '/'+this.currentDir + '/' this.directory +'/'+this.udfName,
             type: 'UDF'
           }).then(res => {
             resolve()
@@ -116,7 +130,7 @@
         formData.append('file', this.file)
         formData.append('type', 'UDF')
         formData.append('pid', this.pid)
-        formData.append('currentDir', this.currentDir)
+        formData.append('currentDir', this.currentDir + '/' + this.directory)
         formData.append('name', this.udfName)
         formData.append('description', this.udfDesc)
         this.spinnerLoading = true
