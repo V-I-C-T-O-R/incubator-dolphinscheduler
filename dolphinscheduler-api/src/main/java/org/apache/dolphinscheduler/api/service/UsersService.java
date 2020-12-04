@@ -26,6 +26,7 @@ import org.apache.dolphinscheduler.api.utils.CheckUtils;
 import org.apache.dolphinscheduler.api.utils.PageInfo;
 import org.apache.dolphinscheduler.api.utils.Result;
 import org.apache.dolphinscheduler.common.Constants;
+import org.apache.dolphinscheduler.common.enums.Flag;
 import org.apache.dolphinscheduler.common.enums.ResourceType;
 import org.apache.dolphinscheduler.common.enums.UserType;
 import org.apache.dolphinscheduler.common.utils.*;
@@ -39,6 +40,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.io.IOException;
+import java.text.MessageFormat;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -98,7 +100,8 @@ public class UsersService extends BaseService {
                                           String email,
                                           int tenantId,
                                           String phone,
-                                          String queue) throws Exception {
+                                          String queue,
+                                          int state) throws Exception {
 
         Map<String, Object> result = new HashMap<>(5);
 
@@ -119,7 +122,7 @@ public class UsersService extends BaseService {
             return result;
         }
 
-        User user = createUser(userName, userPassword, email, tenantId, phone, queue);
+        User user = createUser(userName, userPassword, email, tenantId, phone, queue, state);
 
         Tenant tenant = tenantMapper.queryById(tenantId);
         // resource upload startup
@@ -137,13 +140,14 @@ public class UsersService extends BaseService {
 
     }
 
-    @Transactional(rollbackFor = Exception.class)
+    @Transactional(rollbackFor = RuntimeException.class)
     public User createUser(String userName,
                                           String userPassword,
                                           String email,
                                           int tenantId,
                                           String phone,
-                                          String queue) throws Exception {
+                                          String queue,
+                                          int state) {
         User user = new User();
         Date now = new Date();
 
@@ -152,6 +156,7 @@ public class UsersService extends BaseService {
         user.setEmail(email);
         user.setTenantId(tenantId);
         user.setPhone(phone);
+        user.setState(state);
         // create general users, administrator users are currently built-in
         user.setUserType(UserType.GENERAL_USER);
         user.setCreateTime(now);
@@ -266,7 +271,8 @@ public class UsersService extends BaseService {
                                           String email,
                                           int tenantId,
                                           String phone,
-                                          String queue) throws Exception {
+                                          String queue,
+                                          int state) throws Exception {
         Map<String, Object> result = new HashMap<>(5);
         result.put(Constants.STATUS, false);
 
@@ -315,6 +321,7 @@ public class UsersService extends BaseService {
         }
         user.setPhone(phone);
         user.setQueue(queue);
+        user.setState(state);
         Date now = new Date();
         user.setUpdateTime(now);
 
@@ -428,7 +435,7 @@ public class UsersService extends BaseService {
      * @param projectIds project id array
      * @return grant result code
      */
-    @Transactional(rollbackFor = Exception.class)
+    @Transactional(rollbackFor = RuntimeException.class)
     public Map<String, Object> grantProject(User loginUser, int userId, String projectIds) {
         Map<String, Object> result = new HashMap<>(5);
         result.put(Constants.STATUS, false);
@@ -478,7 +485,7 @@ public class UsersService extends BaseService {
      * @param resourceIds resource id array
      * @return grant result code
      */
-    @Transactional(rollbackFor = Exception.class)
+    @Transactional(rollbackFor = RuntimeException.class)
     public Map<String, Object> grantResources(User loginUser, int userId, String resourceIds) {
         Map<String, Object> result = new HashMap<>(5);
         //only admin can operate
@@ -575,7 +582,7 @@ public class UsersService extends BaseService {
      * @param udfIds udf id array
      * @return grant result code
      */
-    @Transactional(rollbackFor = Exception.class)
+    @Transactional(rollbackFor = RuntimeException.class)
     public Map<String, Object> grantUDFFunction(User loginUser, int userId, String udfIds) {
         Map<String, Object> result = new HashMap<>(5);
 
@@ -622,7 +629,7 @@ public class UsersService extends BaseService {
      * @param datasourceIds  data source id array
      * @return grant result code
      */
-    @Transactional(rollbackFor = Exception.class)
+    @Transactional(rollbackFor = RuntimeException.class)
     public Map<String, Object> grantDataSource(User loginUser, int userId, String datasourceIds) {
         Map<String, Object> result = new HashMap<>(5);
         result.put(Constants.STATUS, false);
@@ -887,5 +894,128 @@ public class UsersService extends BaseService {
                 }
             }
         }
+    }
+
+    /**
+     * register user, default state is 0, default tenant_id is 1, no phone, no queue
+     *
+     * @param userName       user name
+     * @param userPassword   user password
+     * @param repeatPassword repeat password
+     * @param email          email
+     * @return register result code
+     * @throws Exception exception
+     */
+    @Transactional(rollbackFor = RuntimeException.class)
+    public Map<String, Object> registerUser(String userName, String userPassword, String repeatPassword, String email) {
+        Map<String, Object> result = new HashMap<>();
+
+        //check user params
+        String msg = this.checkUserParams(userName, userPassword, email, "");
+
+        if (!StringUtils.isEmpty(msg)) {
+            putMsg(result, Status.REQUEST_PARAMS_NOT_VALID_ERROR,msg);
+            return result;
+        }
+
+        if (!userPassword.equals(repeatPassword)) {
+            putMsg(result, Status.REQUEST_PARAMS_NOT_VALID_ERROR, "two passwords are not same");
+            return result;
+        }
+        User user = createUser(userName, userPassword, email, 1, "", "", Flag.NO.ordinal());
+        putMsg(result, Status.SUCCESS);
+        result.put(Constants.DATA_LIST, user);
+        return result;
+    }
+
+    /**
+     * activate user, only system admin have permission, change user state code 0 to 1
+     *
+     * @param loginUser login user
+     * @param userName  user name
+     * @return create result code
+     */
+    public Map<String, Object> activateUser(User loginUser, String userName) {
+        Map<String, Object> result = new HashMap<>();
+        result.put(Constants.STATUS, false);
+
+        if (!isAdmin(loginUser)) {
+            putMsg(result, Status.USER_NO_OPERATION_PERM);
+            return result;
+        }
+
+        if (!CheckUtils.checkUserName(userName)){
+            putMsg(result, Status.REQUEST_PARAMS_NOT_VALID_ERROR, userName);
+            return result;
+        }
+
+        User user = userMapper.queryByUserNameAccurately(userName);
+
+        if (user == null) {
+            putMsg(result, Status.USER_NOT_EXIST, userName);
+            return result;
+        }
+
+        if (user.getState() != Flag.NO.ordinal()) {
+            putMsg(result, Status.REQUEST_PARAMS_NOT_VALID_ERROR, userName);
+            return result;
+        }
+
+        user.setState(Flag.YES.ordinal());
+        Date now = new Date();
+        user.setUpdateTime(now);
+        userMapper.updateById(user);
+        User responseUser = userMapper.queryByUserNameAccurately(userName);
+        putMsg(result, Status.SUCCESS);
+        result.put(Constants.DATA_LIST, responseUser);
+        return result;
+    }
+
+    /**
+     * activate user, only system admin have permission, change users state code 0 to 1
+     *
+     * @param loginUser login user
+     * @param userNames user name
+     * @return create result code
+     */
+    public Map<String, Object> batchActivateUser(User loginUser, List<String> userNames) {
+        Map<String, Object> result = new HashMap<>();
+
+        if (!isAdmin(loginUser)) {
+            putMsg(result, Status.USER_NO_OPERATION_PERM);
+            return result;
+        }
+
+        int totalSuccess = 0;
+        List<String> successUserNames = new ArrayList<>();
+        Map<String, Object> successRes = new HashMap<>();
+        int totalFailed = 0;
+        List<Map<String, String>> failedInfo = new ArrayList<>();
+        Map<String, Object> failedRes = new HashMap<>();
+        for (String userName : userNames) {
+            Map<String, Object> tmpResult = activateUser(loginUser, userName);
+            if (tmpResult.get(Constants.STATUS) != Status.SUCCESS) {
+                totalFailed++;
+                Map<String, String> failedBody = new HashMap<>();
+                failedBody.put("userName", userName);
+                Status status = (Status) tmpResult.get(Constants.STATUS);
+                String errorMessage = MessageFormat.format(status.getMsg(), userName);
+                failedBody.put("msg", errorMessage);
+                failedInfo.add(failedBody);
+            } else {
+                totalSuccess++;
+                successUserNames.add(userName);
+            }
+        }
+        successRes.put("sum", totalSuccess);
+        successRes.put("userName", successUserNames);
+        failedRes.put("sum", totalFailed);
+        failedRes.put("info", failedInfo);
+        Map<String, Object> res = new HashMap<>();
+        res.put("success", successRes);
+        res.put("failed", failedRes);
+        putMsg(result, Status.SUCCESS);
+        result.put(Constants.DATA_LIST, res);
+        return result;
     }
 }

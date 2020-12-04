@@ -16,6 +16,12 @@
  */
 package org.apache.dolphinscheduler.api.service;
 
+import java.text.MessageFormat;
+import java.util.Map;
+
+import javax.servlet.http.Cookie;
+import javax.servlet.http.HttpServletRequest;
+
 import org.apache.dolphinscheduler.api.enums.Status;
 import org.apache.dolphinscheduler.api.utils.Result;
 import org.apache.dolphinscheduler.common.Constants;
@@ -23,11 +29,6 @@ import org.apache.dolphinscheduler.common.enums.UserType;
 import org.apache.dolphinscheduler.common.utils.HadoopUtils;
 import org.apache.dolphinscheduler.common.utils.StringUtils;
 import org.apache.dolphinscheduler.dao.entity.User;
-
-import javax.servlet.http.Cookie;
-import javax.servlet.http.HttpServletRequest;
-import java.text.MessageFormat;
-import java.util.Map;
 
 /**
  * base service
@@ -115,6 +116,7 @@ public class BaseService {
 
     /**
      * get cookie info by name
+     *
      * @param request request
      * @param name 'sessionId'
      * @return get cookie info
@@ -134,10 +136,11 @@ public class BaseService {
 
     /**
      * create tenant dir if not exists
+     *
      * @param tenantCode tenant code
      * @throws Exception if hdfs operation exception
      */
-    protected void createTenantDirIfNotExists(String tenantCode)throws Exception{
+    protected void createTenantDirIfNotExists(String tenantCode) throws Exception {
 
         String resourcePath = HadoopUtils.getHdfsResDir(tenantCode);
         String udfsPath = HadoopUtils.getHdfsUdfDir(tenantCode);
@@ -148,7 +151,7 @@ public class BaseService {
         HadoopUtils.getInstance().mkdir(udfsPath);
     }
 
-    protected boolean hasPerm(User operateUser, int createUserId){
+    protected boolean hasPerm(User operateUser, int createUserId) {
         return operateUser.getId() == createUserId || isAdmin(operateUser);
     }
 }

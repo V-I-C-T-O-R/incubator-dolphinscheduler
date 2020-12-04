@@ -42,7 +42,7 @@
             <logBase>${log.base}</logBase>
         </Discriminator>
         <sift>
-            <appender name="FILE-${taskAppId}" class="org.apache.dolphinscheduler.server.log.TaskLogAppender">
+            <appender name="FILE-${taskAppId}" class="ch.qos.logback.core.FileAppender">
                 <file>${log.base}/${taskAppId}.log</file>
                 <encoder>
                     <pattern>

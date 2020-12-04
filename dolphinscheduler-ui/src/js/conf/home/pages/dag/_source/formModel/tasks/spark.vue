@@ -22,7 +22,6 @@
         <x-select
                 style="width: 130px;"
                 v-model="programType"
-                @on-change="_onChange"
                 :disabled="isDetails">
           <x-option
                   v-for="city in programTypeList"
@@ -62,9 +61,9 @@
       </div>
     </m-list-box>
     <m-list-box>
-      <div slot="text">{{$t('Main package')}}</div>
+      <div slot="text">{{$t('Main jar package')}}</div>
       <div slot="content">
-        <treeselect v-model="mainJar" :options="mainJarLists" :disable-branch-nodes="true" :normalizer="normalizer" :disabled="isDetails" :placeholder="$t('Please enter main package')">
+        <treeselect v-model="mainJar" maxHeight="200" :options="mainJarLists" :disable-branch-nodes="true" :normalizer="normalizer" :disabled="isDetails" :placeholder="$t('Please enter main jar package')">
           <div slot="value-label" slot-scope="{ node }">{{ node.raw.fullName }}</div>
         </treeselect>
       </div>
@@ -170,7 +169,7 @@
     <m-list-box>
       <div slot="text">{{$t('Resources')}}</div>
       <div slot="content">
-        <treeselect v-model="resourceList" :multiple="true" :options="mainJarList" :normalizer="normalizer" :value-consists-of="valueConsistsOf" :disabled="isDetails" :placeholder="$t('Please select resources')">
+        <treeselect v-model="resourceList" :multiple="true" maxHeight="200" :options="mainJarList" :normalizer="normalizer" :value-consists-of="valueConsistsOf" :disabled="isDetails" :placeholder="$t('Please select resources')">
           <div slot="value-label" slot-scope="{ node }">{{ node.raw.fullName }}</div>
         </treeselect>
       </div>
@@ -221,8 +220,6 @@
         // Master jar package(List)
         mainJarLists: [],
         mainJarList: [],
-        jarList: [],
-        pyList: [],
         // Deployment method
         deployMode: 'cluster',
         // Resource(list)
@@ -267,16 +264,6 @@
     },
     mixins: [disabledState],
     methods: {
-      /**
-       * programType change
-       */
-      _onChange(o) {
-        if(o.value === 'PYTHON') {
-          this.mainJarLists = this.pyList
-        } else {
-          this.mainJarLists = this.jarList
-        }
-      },
       /**
        * getResourceId
        */
@@ -348,8 +335,10 @@
           resourceIdArr = isResourceId.map(item=>{
             return item.id
           })
-          let diffSet
-          diffSet = _.xorWith(this.resourceList, resourceIdArr, _.isEqual)
+          Array.prototype.diff = function(a) {
+            return this.filter(function(i) {return a.indexOf(i) < 0;});
+          };
+          let diffSet = this.resourceList.diff(resourceIdArr);
           let optionsCmp = []
           if(diffSet.length>0) {
             diffSet.forEach(item=>{
@@ -362,20 +351,19 @@
           }
           let noResources = [{
             id: -1,
-            name: $t('No resources exist'),
-            fullName: '/'+$t('No resources exist'),
+            name: $t('Unauthorized or deleted resources'),
+            fullName: '/'+$t('Unauthorized or deleted resources'),
             children: []
           }]
           if(optionsCmp.length>0) {
             this.allNoResources = optionsCmp
             optionsCmp = optionsCmp.map(item=>{
-              return {id: item.id,name: item.name || item.res,fullName: item.res}
+              return {id: item.id,name: item.name,fullName: item.res}
             })
             optionsCmp.forEach(item=>{
               item.isNew = true
             })
             noResources[0].children = optionsCmp
-            this.mainJarList = _.filter(this.mainJarList, o=> { return o.id!==-1 })
             this.mainJarList = this.mainJarList.concat(noResources)
           }
         }
@@ -390,7 +378,7 @@
         }
 
         if (!this.mainJar) {
-          this.$message.warning(`${i18n.$t('Please enter main package')}`)
+          this.$message.warning(`${i18n.$t('Please enter main jar package')}`)
           return false
         }
 
@@ -401,7 +389,7 @@
 
         // noRes
         if (this.noRes.length>0) {
-          this.$message.warning(`${i18n.$t('Please delete all non-existing resources')}`)
+          this.$message.warning(`${i18n.$t('Please delete all non-existent resources')}`)
           return false
         }
 
@@ -526,27 +514,18 @@
       }
     },
     created () {
-        let o = this.backfillItem
         let item = this.store.state.dag.resourcesListS
         let items = this.store.state.dag.resourcesListJar
-        let pythonList = this.store.state.dag.resourcesListPy
         this.diGuiTree(item)
         this.diGuiTree(items)
-        this.diGuiTree(pythonList)
-
         this.mainJarList = item
-        this.jarList = items
-        this.pyList = pythonList
-        if(!_.isEmpty(o) && o.params.programType === 'PYTHON') {
-          this.mainJarLists = pythonList
-        } else {
-          this.mainJarLists = items
-        }
+        this.mainJarLists = items
+        let o = this.backfillItem
 
         // Non-null objects represent backfill
         if (!_.isEmpty(o)) {
           this.mainClass = o.params.mainClass || ''
-          if(!o.params.mainJar.id) {
+          if(o.params.mainJar.res) {
             this.marjarId(o.params.mainJar.res)
           } else if(o.params.mainJar.res=='') {
             this.mainJar = ''

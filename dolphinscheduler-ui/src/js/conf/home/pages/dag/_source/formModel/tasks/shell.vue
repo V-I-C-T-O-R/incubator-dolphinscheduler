@@ -20,7 +20,11 @@
       <div slot="text">{{$t('Script')}}</div>
       <div slot="content">
         <div class="from-mirror">
-          <textarea id="code-shell-mirror" name="code-shell-mirror" style="opacity: 0"></textarea>
+          <textarea
+            id="code-shell-mirror"
+            name="code-shell-mirror"
+            style="opacity: 0">
+          </textarea>
           <a class="ans-modal-box-max">
             <em class="ans-icon-max" @click="setEditorVal"></em>
           </a>
@@ -30,7 +34,7 @@
     <m-list-box>
       <div slot="text">{{$t('Resources')}}</div>
       <div slot="content">
-        <treeselect  v-model="resourceList" :multiple="true" :options="options" :normalizer="normalizer" :disabled="isDetails" :value-consists-of="valueConsistsOf" :placeholder="$t('Please select resources')">
+        <treeselect  v-model="resourceList" :multiple="true" maxHeight="200" :options="options" :normalizer="normalizer" :disabled="isDetails" :value-consists-of="valueConsistsOf" :placeholder="$t('Please select resources')">
           <div slot="value-label" slot-scope="{ node }">{{ node.raw.fullName }}</div>
         </treeselect>
       </div>
@@ -165,7 +169,7 @@
         }
         // noRes
         if (this.noRes.length>0) {
-          this.$message.warning(`${i18n.$t('Please delete all non-existing resources')}`)
+          this.$message.warning(`${i18n.$t('Please delete all non-existent resources')}`)
           return false
         }
         // Process resourcelist
@@ -246,8 +250,10 @@
           resourceIdArr = isResourceId.map(item=>{
             return item.id
           })
-          let diffSet
-          diffSet = _.xorWith(this.resourceList, resourceIdArr, _.isEqual)
+          Array.prototype.diff = function(a) {
+            return this.filter(function(i) {return a.indexOf(i) < 0;});
+          };
+          let diffSet = this.resourceList.diff(resourceIdArr);
           let optionsCmp = []
           if(diffSet.length>0) {
             diffSet.forEach(item=>{
@@ -260,20 +266,19 @@
           }
           let noResources = [{
             id: -1,
-            name: $t('No resources exist'),
-            fullName: '/'+$t('No resources exist'),
+            name: $t('Unauthorized or deleted resources'),
+            fullName: '/'+$t('Unauthorized or deleted resources'),
             children: []
           }]
           if(optionsCmp.length>0) {
             this.allNoResources = optionsCmp
             optionsCmp = optionsCmp.map(item=>{
-              return {id: item.id,name: item.name || item.res,fullName: item.res}
+              return {id: item.id,name: item.name,fullName: item.res}
             })
             optionsCmp.forEach(item=>{
               item.isNew = true
             })
             noResources[0].children = optionsCmp
-            this.options = _.filter(this.options, o=> { return o.id!==-1 })
             this.options = this.options.concat(noResources)
           }
         }
@@ -359,12 +364,9 @@
       }
     },
     mounted () {
-      // Added delay loading in script input box
-      this.$nextTick(() => {
-        setTimeout(() => {
-          this._handlerEditor()
-        }, 350)
-      })
+      setTimeout(() => {
+        this._handlerEditor()
+      }, 200)
     },
     destroyed () {
       if (editor) {

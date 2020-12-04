@@ -23,8 +23,6 @@ import org.apache.dolphinscheduler.remote.command.Command;
 import org.apache.dolphinscheduler.remote.utils.ChannelUtils;
 import org.apache.dolphinscheduler.remote.utils.Host;
 
-import java.util.Random;
-
 /**
  *  callback channel
  */
@@ -36,7 +34,7 @@ public class NettyRemoteChannel {
     private final Channel channel;
 
     /**
-     *  equest unique identification
+     *  request unique identification
      */
     private final long opaque;
 

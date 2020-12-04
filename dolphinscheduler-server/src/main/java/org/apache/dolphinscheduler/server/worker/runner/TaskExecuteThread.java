@@ -16,17 +16,21 @@
  */
 package org.apache.dolphinscheduler.server.worker.runner;
 
-
-import com.alibaba.fastjson.JSONObject;
-import org.apache.commons.collections.MapUtils;
+import org.apache.dolphinscheduler.common.Constants;
 import org.apache.dolphinscheduler.common.enums.Event;
 import org.apache.dolphinscheduler.common.enums.ExecutionStatus;
+import org.apache.dolphinscheduler.common.enums.TaskType;
 import org.apache.dolphinscheduler.common.model.TaskNode;
 import org.apache.dolphinscheduler.common.process.Property;
 import org.apache.dolphinscheduler.common.task.TaskTimeoutParameter;
+import org.apache.dolphinscheduler.common.thread.ThreadUtils;
 import org.apache.dolphinscheduler.common.utils.CommonUtils;
+import org.apache.dolphinscheduler.common.utils.DateUtils;
 import org.apache.dolphinscheduler.common.utils.HadoopUtils;
-import org.apache.dolphinscheduler.common.utils.LoggerUtils;
+import org.apache.dolphinscheduler.common.utils.JSONUtils;
+import org.apache.dolphinscheduler.common.utils.RetryerUtils;
+import org.apache.dolphinscheduler.remote.command.Command;
+import org.apache.dolphinscheduler.remote.command.TaskExecuteAckCommand;
 import org.apache.dolphinscheduler.remote.command.TaskExecuteResponseCommand;
 import org.apache.dolphinscheduler.server.entity.TaskExecutionContext;
 import org.apache.dolphinscheduler.server.worker.cache.ResponceCache;
@@ -36,14 +40,22 @@ import org.apache.dolphinscheduler.server.worker.processor.TaskCallbackService;
 import org.apache.dolphinscheduler.server.worker.task.AbstractTask;
 import org.apache.dolphinscheduler.server.worker.task.TaskManager;
 import org.apache.dolphinscheduler.service.bean.SpringApplicationContext;
+
+import org.apache.commons.collections.MapUtils;
+
+import java.io.File;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.concurrent.ExecutionException;
+import java.util.stream.Collectors;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.File;
-import java.util.*;
-import java.util.stream.Collectors;
-
-import static ch.qos.logback.classic.ClassicConstants.FINALIZE_SESSION_MARKER;
+import com.github.rholder.retry.RetryException;
 
 
 /**
@@ -77,14 +89,22 @@ public class TaskExecuteThread implements Runnable {
     private TaskExecutionContextCacheManager taskExecutionContextCacheManager;
 
     /**
+     * task logger
+     */
+    private Logger taskLogger;
+
+    /**
      *  constructor
      * @param taskExecutionContext taskExecutionContext
      * @param taskCallbackService taskCallbackService
      */
-    public TaskExecuteThread(TaskExecutionContext taskExecutionContext, TaskCallbackService taskCallbackService){
+    public TaskExecuteThread(TaskExecutionContext taskExecutionContext
+            , TaskCallbackService taskCallbackService
+            , Logger taskLogger) {
         this.taskExecutionContext = taskExecutionContext;
         this.taskCallbackService = taskCallbackService;
         this.taskExecutionContextCacheManager = SpringApplicationContext.getBean(TaskExecutionContextCacheManagerImpl.class);
+        this.taskLogger = taskLogger;
     }
 
     @Override
@@ -94,7 +114,16 @@ public class TaskExecuteThread implements Runnable {
         try {
             logger.info("script path : {}", taskExecutionContext.getExecutePath());
             // task node
-            TaskNode taskNode = JSONObject.parseObject(taskExecutionContext.getTaskJson(), TaskNode.class);
+            TaskNode taskNode = JSONUtils.parseObject(taskExecutionContext.getTaskJson(), TaskNode.class);
+
+            delayExecutionIfNeeded();
+            if (taskExecutionContext.getStartTime() == null) {
+                taskExecutionContext.setStartTime(new Date());
+            }
+            if (taskExecutionContext.getCurrentExecutionStatus() != ExecutionStatus.RUNNING_EXECUTION) {
+                changeTaskExecutionStatusToRunning();
+            }
+            logger.info("the task begins to execute. task instance id: {}", taskExecutionContext.getTaskInstanceId());
 
             // copy hdfs/minio file to local
             downloadResource(taskExecutionContext.getExecutePath(),
@@ -113,14 +142,7 @@ public class TaskExecuteThread implements Runnable {
                     taskExecutionContext.getProcessInstanceId(),
                     taskExecutionContext.getTaskInstanceId()));
 
-            // custom logger
-            Logger taskLogger = LoggerFactory.getLogger(LoggerUtils.buildTaskId(LoggerUtils.TASK_LOGGER_INFO_PREFIX,
-                    taskExecutionContext.getProcessDefineId(),
-                    taskExecutionContext.getProcessInstanceId(),
-                    taskExecutionContext.getTaskInstanceId()));
-
-            task = TaskManager.newTask(taskExecutionContext,
-                    taskLogger);
+            task = TaskManager.newTask(taskExecutionContext, taskLogger);
 
             // task init
             task.init();
@@ -130,12 +152,14 @@ public class TaskExecuteThread implements Runnable {
 
             // task result process
             task.after();
+
             responseCommand.setStatus(task.getExitStatus().getCode());
             responseCommand.setEndTime(new Date());
             responseCommand.setProcessId(task.getProcessId());
             responseCommand.setAppIds(task.getAppIds());
+            responseCommand.setVarPool(task.getVarPool());
             logger.info("task instance id : {},task final status : {}", taskExecutionContext.getTaskInstanceId(), task.getExitStatus());
-        }catch (Exception e){
+        } catch (Exception e) {
             logger.error("task scheduler failure", e);
             kill();
             responseCommand.setStatus(ExecutionStatus.FAILURE.getCode());
@@ -160,7 +184,7 @@ public class TaskExecuteThread implements Runnable {
         // global params string
         String globalParamsStr = taskExecutionContext.getGlobalParams();
         if (globalParamsStr != null) {
-            List<Property> globalParamsList = JSONObject.parseArray(globalParamsStr, Property.class);
+            List<Property> globalParamsList = JSONUtils.toList(globalParamsStr, Property.class);
             globalParamsMap.putAll(globalParamsList.stream().collect(Collectors.toMap(Property::getProp, Property::getValue)));
         }
         return globalParamsMap;
@@ -249,5 +273,60 @@ public class TaskExecuteThread implements Runnable {
                 logger.info("file : {} exists ", resFile.getName());
             }
         }
+    }
+
+    /**
+     * delay execution if needed.
+     */
+    private void delayExecutionIfNeeded() {
+        long remainTime = DateUtils.getRemainTime(taskExecutionContext.getFirstSubmitTime(),
+                taskExecutionContext.getDelayTime() * 60L);
+        logger.info("delay execution time: {} s", remainTime < 0 ? 0 : remainTime);
+        if (remainTime > 0) {
+            try {
+                Thread.sleep(remainTime * Constants.SLEEP_TIME_MILLIS);
+            } catch (Exception e) {
+                logger.error("delay task execution failure, the task will be executed directly. process instance id:{}, task instance id:{}",
+                            taskExecutionContext.getProcessInstanceId(),
+                            taskExecutionContext.getTaskInstanceId());
+            }
+        }
+    }
+
+    /**
+     * send an ack to change the status of the task.
+     */
+    private void changeTaskExecutionStatusToRunning() {
+        taskExecutionContext.setCurrentExecutionStatus(ExecutionStatus.RUNNING_EXECUTION);
+        Command ackCommand = buildAckCommand().convert2Command();
+        try {
+            RetryerUtils.retryCall(() -> {
+                taskCallbackService.sendAck(taskExecutionContext.getTaskInstanceId(), ackCommand);
+                return Boolean.TRUE;
+            });
+        } catch (ExecutionException | RetryException e) {
+            logger.error(e.getMessage(), e);
+        }
+    }
+
+    /**
+     * build ack command.
+     *
+     * @return TaskExecuteAckCommand
+     */
+    private TaskExecuteAckCommand buildAckCommand() {
+        TaskExecuteAckCommand ackCommand = new TaskExecuteAckCommand();
+        ackCommand.setTaskInstanceId(taskExecutionContext.getTaskInstanceId());
+        ackCommand.setStatus(taskExecutionContext.getCurrentExecutionStatus().getCode());
+        ackCommand.setStartTime(taskExecutionContext.getStartTime());
+        ackCommand.setLogPath(taskExecutionContext.getLogPath());
+        ackCommand.setHost(taskExecutionContext.getHost());
+        if (taskExecutionContext.getTaskType().equals(TaskType.SQL.name())
+                || taskExecutionContext.getTaskType().equals(TaskType.PROCEDURE.name())) {
+            ackCommand.setExecutePath(null);
+        } else {
+            ackCommand.setExecutePath(taskExecutionContext.getExecutePath());
+        }
+        return ackCommand;
     }
 }

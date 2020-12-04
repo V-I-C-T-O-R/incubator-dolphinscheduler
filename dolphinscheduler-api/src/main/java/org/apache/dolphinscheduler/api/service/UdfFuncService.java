@@ -136,10 +136,7 @@ public class UdfFuncService extends BaseService{
      */
     private boolean checkUdfFuncNameExists(String name){
         List<UdfFunc> resource = udfFuncMapper.queryUdfByIdStr(null, name);
-        if(resource != null && resource.size() > 0){
-            return true;
-        }
-        return false;
+        return resource != null && resource.size() > 0;
     }
 
 
@@ -304,7 +301,7 @@ public class UdfFuncService extends BaseService{
      * @param id udf function id
      * @return delete result code
      */
-    @Transactional(rollbackFor = Exception.class)
+    @Transactional(rollbackFor = RuntimeException.class)
     public Result delete(int id) {
         Result result = new Result();
         

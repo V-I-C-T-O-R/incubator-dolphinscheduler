@@ -16,7 +16,6 @@
  */
 package org.apache.dolphinscheduler.server.worker.task;
 
-import org.apache.commons.lang.StringUtils;
 import org.apache.dolphinscheduler.common.Constants;
 import org.apache.dolphinscheduler.common.enums.CommandType;
 import org.apache.dolphinscheduler.common.enums.ExecutionStatus;
@@ -38,6 +37,7 @@ import org.apache.dolphinscheduler.common.utils.JSONUtils;
 import org.apache.dolphinscheduler.dao.TaskRecordDao;
 import org.apache.dolphinscheduler.server.entity.TaskExecutionContext;
 import org.apache.dolphinscheduler.server.utils.ParamUtils;
+import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 
 import java.util.List;
@@ -49,6 +49,11 @@ import static ch.qos.logback.classic.ClassicConstants.FINALIZE_SESSION_MARKER;
  * executive task
  */
 public abstract class AbstractTask {
+
+    /**
+     * varPool string
+     */
+    protected String varPool;
 
     /**
      * taskExecutionContext
@@ -126,6 +131,13 @@ public abstract class AbstractTask {
         } else {
             logger.info(" -> {}", String.join("\n\t", logs));
         }
+    }
+
+    public void setVarPool(String varPool) {
+        this.varPool = varPool;
+    }
+    public String getVarPool() {
+        return varPool;
     }
 
     /**

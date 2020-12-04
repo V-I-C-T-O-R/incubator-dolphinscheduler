@@ -65,7 +65,7 @@
           </th>
         </tr>
         <tr v-for="(item, $index) in list" :key="item.id">
-          <td width="50"><x-checkbox v-model="item.isCheck" :disabled="item.state === 'RUNNING_EXEUTION' || item.state === 'READY_STOP' || item.state === 'READY_PAUSE'" @on-change="_arrDelChange"></x-checkbox></td>
+          <td width="50"><x-checkbox v-model="item.isCheck" @on-change="_arrDelChange"></x-checkbox></td>
           <td width="50">
             <span>{{parseInt(pageNo === 1 ? ($index + 1) : (($index + 1) + (pageSize * (pageNo - 1))))}}</span>
           </td>
@@ -132,7 +132,7 @@
                         :title="item.state === 'STOP' ? $t('Recovery Suspend') : $t('Stop')"
                         @click="_stop(item,$index)"
                         :icon="item.state === 'STOP' ? 'ans-icon-pause-solid' : 'ans-icon-stop'"
-                        :disabled="item.state !== 'RUNNING_EXEUTION' && item.state != 'STOP'"></x-button>
+                        :disabled="item.state !== 'RUNNING_EXECUTION' && item.state != 'STOP'"></x-button>
               <x-button type="warning"
                         shape="circle"
                         size="xsmall"
@@ -140,7 +140,7 @@
                         :title="item.state === 'PAUSE' ? $t('Recovery Suspend') : $t('Pause')"
                         @click="_suspend(item,$index)"
                         :icon="item.state === 'PAUSE' ? 'ans-icon-pause-solid' : 'ans-icon-pause'"
-                        :disabled="item.state !== 'RUNNING_EXEUTION' && item.state !== 'PAUSE'"></x-button>
+                        :disabled="item.state !== 'RUNNING_EXECUTION' && item.state !== 'PAUSE'"></x-button>
               <x-poptip
                       :ref="'poptip-delete-' + $index"
                       placement="top-end"
@@ -288,7 +288,6 @@
       </table>
     </div>
     <x-poptip
-            v-show="strDelete !== ''"
             ref="poptipDeleteAll"
             placement="bottom-start"
             width="90">
@@ -298,7 +297,7 @@
         <x-button type="primary" size="xsmall" shape="circle" @click="_delete({},-1)">{{$t('Confirm')}}</x-button>
       </div>
       <template slot="reference">
-        <x-button size="xsmall" style="position: absolute; bottom: -48px; left: 22px;" >{{$t('Delete')}}</x-button>
+        <x-button size="xsmall" :disabled="!strDelete" style="position: absolute; bottom: -48px; left: 22px;" >{{$t('Delete')}}</x-button>
       </template>
     </x-poptip>
   </div>
@@ -520,9 +519,10 @@
       _gantt (item) {
         this.$router.push({ path: `/projects/instance/gantt/${item.id}` })
       },
-
-      _topCheckBoxClick (is) {
-        _.map(this.list , v => v.isCheck = v.state === ('RUNNING_EXEUTION') || v.state === ('READY_STOP') || v.state === ('READY_PAUSE')? false : is)
+      _topCheckBoxClick (v) {
+        this.list.forEach((item, i) => {
+          this.$set(this.list[i], 'isCheck', v)
+        })
         this._arrDelChange()
       },
       _arrDelChange (v) {

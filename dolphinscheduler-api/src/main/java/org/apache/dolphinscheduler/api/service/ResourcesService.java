@@ -16,10 +16,9 @@
  */
 package org.apache.dolphinscheduler.api.service;
 
-import com.alibaba.fastjson.JSON;
-import com.alibaba.fastjson.serializer.SerializerFeature;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.fasterxml.jackson.databind.SerializationFeature;
 import org.apache.commons.collections.BeanMap;
 import org.apache.dolphinscheduler.api.dto.resources.ResourceComponent;
 import org.apache.dolphinscheduler.api.dto.resources.filter.ResourceFilter;
@@ -120,6 +119,13 @@ public class ResourcesService extends BaseService {
                 putMsg(result, Status.USER_NO_OPERATION_PERM);
                 return result;
             }
+        }
+
+
+        if (checkResourceExists(fullName, 0, type.ordinal())) {
+            logger.error("resource directory {} has exist, can't recreate", fullName);
+            putMsg(result, Status.RESOURCE_EXIST);
+            return result;
         }
 
         Date now = new Date();
@@ -275,10 +281,7 @@ public class ResourcesService extends BaseService {
     private boolean checkResourceExists(String fullName, int userId, int type ){
 
         List<Resource> resources = resourcesMapper.queryResourceList(fullName, userId, type);
-        if (resources != null && resources.size() > 0) {
-            return true;
-        }
-        return false;
+        return resources != null && resources.size() > 0;
     }
 
 
@@ -419,7 +422,6 @@ public class ResourcesService extends BaseService {
         }
 
         // updateResource data
-
         Date now = new Date();
 
         resource.setAlias(name);
@@ -622,6 +624,13 @@ public class ResourcesService extends BaseService {
             if (!HadoopUtils.getInstance().exists(resourcePath)) {
                 createTenantDirIfNotExists(tenantCode);
             }
+
+            // add create dir for customized
+            String fileDirName = FileUtils.dirName(fullName) ;
+            String hdfsDirPath = HadoopUtils.getHdfsFileName(type,tenantCode,fileDirName);
+            if (!HadoopUtils.getInstance().exists(hdfsDirPath)) {
+                HadoopUtils.getInstance().mkdir(hdfsDirPath);
+            }
             org.apache.dolphinscheduler.api.utils.FileUtils.copyFile(file, localFilename);
             HadoopUtils.getInstance().copyLocalToHdfs(localFilename, hdfsFilename, true, true);
         } catch (Exception e) {
@@ -648,7 +657,6 @@ public class ResourcesService extends BaseService {
         }
         List<Resource> allResourceList = resourcesMapper.queryResourceListAuthored(userId, type.ordinal(),0);
         Visitor resourceTreeVisitor = new ResourceTreeVisitor(allResourceList);
-        //JSONArray jsonArray = JSON.parseArray(JSON.toJSONString(resourceTreeVisitor.visit().getChildren(), SerializerFeature.SortField));
         result.put(Constants.DATA_LIST, resourceTreeVisitor.visit().getChildren());
         putMsg(result,Status.SUCCESS);
 
@@ -1270,8 +1278,9 @@ public class ResourcesService extends BaseService {
         }
         List<Resource> authedResources = resourcesMapper.queryAuthorizedResourceList(userId);
         Visitor visitor = new ResourceTreeVisitor(authedResources);
-        logger.info(JSON.toJSONString(visitor.visit(), SerializerFeature.SortField));
-        String jsonTreeStr = JSON.toJSONString(visitor.visit().getChildren(), SerializerFeature.SortField);
+        String visit = JSONUtils.toJsonString(visitor.visit(), SerializationFeature.ORDER_MAP_ENTRIES_BY_KEYS);
+        logger.info(visit);
+        String jsonTreeStr = JSONUtils.toJsonString(visitor.visit().getChildren(), SerializationFeature.ORDER_MAP_ENTRIES_BY_KEYS);
         logger.info(jsonTreeStr);
         result.put(Constants.DATA_LIST, visitor.visit().getChildren());
         putMsg(result,Status.SUCCESS);

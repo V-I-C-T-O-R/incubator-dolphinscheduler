@@ -62,7 +62,6 @@
           this.getResourcesList(),
           // get jar
           this.getResourcesListJar(),
-          this.getResourcesListJar('PYTHON'),
           // get worker group list
           this.getWorkerGroupsAll(),
           this.getTenantList()

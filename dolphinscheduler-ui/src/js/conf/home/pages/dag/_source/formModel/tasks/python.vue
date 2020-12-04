@@ -22,13 +22,16 @@
         <div class="from-mirror">
           <textarea id="code-python-mirror" name="code-python-mirror" style="opacity: 0;">
           </textarea>
+          <a class="ans-modal-box-max">
+            <em class="ans-icon-max" @click="setEditorVal"></em>
+          </a>
         </div>
       </div>
     </m-list-box>
     <m-list-box>
       <div slot="text">{{$t('Resources')}}</div>
       <div slot="content">
-        <treeselect v-model="resourceList" :multiple="true" :options="resourceOptions" :normalizer="normalizer" :value-consists-of="valueConsistsOf" :disabled="isDetails" :placeholder="$t('Please select resources')">
+        <treeselect v-model="resourceList" :multiple="true" maxHeight="200" :options="resourceOptions" :normalizer="normalizer" :value-consists-of="valueConsistsOf" :disabled="isDetails" :placeholder="$t('Please select resources')">
           <div slot="value-label" slot-scope="{ node }">{{ node.raw.fullName }}</div>
         </treeselect>
         <!-- <m-resources
@@ -57,6 +60,7 @@
   import _ from 'lodash'
   import i18n from '@/module/i18n'
   import mListBox from './_source/listBox'
+  import mScriptBox from './_source/scriptBox'
   import mResources from './_source/resources'
   import mLocalParams from './_source/localParams'
   import Treeselect from '@riophae/vue-treeselect'
@@ -100,6 +104,34 @@
       _onLocalParams (a) {
         this.localParams = a
       },
+      setEditorVal() {
+        let self = this
+          let modal = self.$modal.dialog({
+            className: 'scriptModal',
+            closable: false,
+            showMask: true,
+            maskClosable: true,
+            onClose: function() {
+
+            },
+            render (h) {
+              return h(mScriptBox, {
+                on: {
+                  getSriptBoxValue (val) {
+                    editor.setValue(val)
+                  },
+                  closeAble () {
+                    // this.$modal.destroy()
+                    modal.remove()
+                  }
+                },
+                props: {
+                  item: editor.getValue()
+                }
+              })
+            }
+          })
+      },
       /**
        * return resourceList
        */
@@ -129,7 +161,7 @@
 
         // noRes
         if (this.noRes.length>0) {
-          this.$message.warning(`${i18n.$t('Please delete all non-existing resources')}`)
+          this.$message.warning(`${i18n.$t('Please delete all non-existent resources')}`)
           return false
         }
 
@@ -208,8 +240,10 @@
           resourceIdArr = isResourceId.map(item=>{
             return item.id
           })
-          let diffSet
-          diffSet = _.xorWith(this.resourceList, resourceIdArr, _.isEqual)
+          Array.prototype.diff = function(a) {
+            return this.filter(function(i) {return a.indexOf(i) < 0;});
+          };
+          let diffSet = this.resourceList.diff(resourceIdArr);
           let optionsCmp = []
           if(diffSet.length>0) {
             diffSet.forEach(item=>{
@@ -222,20 +256,19 @@
           }
           let noResources = [{
             id: -1,
-            name: $t('No resources exist'),
-            fullName: '/'+$t('No resources exist'),
+            name: $t('Unauthorized or deleted resources'),
+            fullName: '/'+$t('Unauthorized or deleted resources'),
             children: []
           }]
           if(optionsCmp.length>0) {
             this.allNoResources = optionsCmp
             optionsCmp = optionsCmp.map(item=>{
-              return {id: item.id,name: item.name || item.res,fullName: item.res}
+              return {id: item.id,name: item.name,fullName: item.res}
             })
             optionsCmp.forEach(item=>{
               item.isNew = true
             })
             noResources[0].children = optionsCmp
-            this.resourceOptions = _.filter(this.resourceOptions, o=> { return o.id!==-1 })
             this.resourceOptions = this.resourceOptions.concat(noResources)
           }
         }
@@ -321,12 +354,9 @@
       }
     },
     mounted () {
-      // Added delay loading in script input box
-      this.$nextTick(() => {
-        setTimeout(() => {
-          this._handlerEditor()
-        }, 350)
-      })
+      setTimeout(() => {
+        this._handlerEditor()
+      }, 200)
     },
     destroyed () {
       editor.toTextArea() // Uninstall
@@ -343,5 +373,10 @@
         color: #6d859e;
       }
     }
+  }
+  .ans-modal-box-max {
+    position: absolute;
+    right: -12px;
+    top: -16px;
   }
 </style>

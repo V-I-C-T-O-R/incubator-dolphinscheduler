@@ -35,8 +35,9 @@ import {
   computeScale
 } from './util'
 import mStart from '@/conf/home/pages/projects/pages/definition/pages/list/_source/start'
+import multiDrag from './multiDrag'
 
-let JSP = function () {
+const JSP = function () {
   this.dag = {}
   this.selectedElement = {}
 
@@ -83,8 +84,11 @@ JSP.prototype.init = function ({ dag, instance, options }) {
 
   // Monitor line click
   this.JspInstance.bind('click', e => {
+    // Untie event
     if (this.config.isClick) {
       this.connectClick(e)
+    } else {
+      findComponentDownward(this.dag.$root, 'dag-chart')._createLineLabel({id: e._jsPlumb.overlays.label.canvas.id, sourceId: e.sourceId, targetId: e.targetId})
     }
   })
 
@@ -92,6 +96,9 @@ JSP.prototype.init = function ({ dag, instance, options }) {
   if (this.config.isNewNodes) {
     DragZoom.init()
   }
+
+  // support multi drag
+  multiDrag()
 }
 
 /**
@@ -478,9 +485,9 @@ JSP.prototype.handleEventRemove = function () {
 JSP.prototype.removeNodes = function ($id) {
   // Delete node processing(data-targetarr)
   _.map(tasksAll(), v => {
-    let targetarr = v.targetarr.split(',')
+    const targetarr = v.targetarr.split(',')
     if (targetarr.length) {
-      let newArr = _.filter(targetarr, v1 => v1 !== $id)
+      const newArr = _.filter(targetarr, v1 => v1 !== $id)
       $(`#${v.id}`).attr('data-targetarr', newArr.toString())
     }
   })
@@ -496,7 +503,8 @@ JSP.prototype.removeNodes = function ($id) {
   _.map(this.JspInstance.getConnections(), v => {
     connects.push({
       endPointSourceId: v.sourceId,
-      endPointTargetId: v.targetId
+      endPointTargetId: v.targetId,
+      label: v._jsPlumb.overlays.label.canvas.innerText
     })
   })
   // Storage line dependence
@@ -511,8 +519,8 @@ JSP.prototype.removeConnect = function ($connect) {
     return
   }
   // Remove connections and remove node and node dependencies
-  let targetId = $connect.targetId
-  let sourceId = $connect.sourceId
+  const targetId = $connect.targetId
+  const sourceId = $connect.sourceId
   let targetarr = rtTargetarrArr(targetId)
   if (targetarr.length) {
     targetarr = _.filter(targetarr, v => v !== sourceId)
@@ -628,10 +636,10 @@ JSP.prototype.saveStore = function () {
     // task
     _.map(_.cloneDeep(store.state.dag.tasks), v => {
       if (is(v.id)) {
-        let preTasks = []
-        let id = $(`#${v.id}`)
-        let tar = id.attr('data-targetarr')
-        let idDep = tar ? id.attr('data-targetarr').split(',') : []
+        const preTasks = []
+        const id = $(`#${v.id}`)
+        const tar = id.attr('data-targetarr')
+        const idDep = tar ? id.attr('data-targetarr').split(',') : []
         if (idDep.length) {
           _.map(idDep, v1 => {
             preTasks.push($(`#${v1}`).find('.name-p').text())
@@ -650,13 +658,39 @@ JSP.prototype.saveStore = function () {
         tasks.push(tasksParam)
       }
     })
-    
-    _.map(this.JspInstance.getConnections(), v => {
-      connects.push({
-        endPointSourceId: v.sourceId,
-        endPointTargetId: v.targetId
+    if(store.state.dag.connects.length ===this.JspInstance.getConnections().length) {
+      _.map(store.state.dag.connects, u => {
+        connects.push({
+          endPointSourceId: u.endPointSourceId,
+          endPointTargetId: u.endPointTargetId,
+          label: u.label
+        })
       })
-    })
+    } else if(store.state.dag.connects.length>0 && store.state.dag.connects.length < this.JspInstance.getConnections().length) {
+      _.map(this.JspInstance.getConnections(), v => {
+        connects.push({
+          endPointSourceId: v.sourceId,
+          endPointTargetId: v.targetId,
+          label: v._jsPlumb.overlays.label.canvas.innerText
+        })
+      })
+      _.map(store.state.dag.connects, u => {
+        _.map(connects, v => {
+          if(u.label && u.endPointSourceId === v.endPointSourceId && u.endPointTargetId===v.endPointTargetId) {
+            v.label = u.label
+          }
+        })
+      })
+    } else if(store.state.dag.connects.length===0) {
+      _.map(this.JspInstance.getConnections(), v => {
+        connects.push({
+          endPointSourceId: v.sourceId,
+          endPointTargetId: v.targetId,
+          label: v._jsPlumb.overlays.label.canvas.innerText
+        })
+      })
+    }
+    
     _.map(tasksAll(), v => {
       locations[v.id] = {
         name: v.name,
@@ -666,18 +700,7 @@ JSP.prototype.saveStore = function () {
         y: v.y
       }
     })
-    let targetArrBool = false
-    _.forEach(locations, item => {
-      if(item.targetarr) {
-        targetArrBool = true
-        return false
-      }
-    })
-    if(connects.length && !targetArrBool) {
-      Vue.$message.warning(`${i18n.$t('The workflow canvas is abnormal and cannot be saved, please recreate')}`)
-      return false
-    }
-    
+
     // Storage node
     store.commit('dag/setTasks', tasks)
     // Store coordinate information
@@ -698,48 +721,37 @@ JSP.prototype.saveStore = function () {
 
 JSP.prototype.handleEvent = function () {
   this.JspInstance.bind('beforeDrop', function (info) {
-    console.log(info)
-    const rtTargetArr = (id) => {
-      let ids = $(`#${id}`).attr('data-targetarr')
-      return ids ? ids.split(',') : []
-    }
-    let sourceId = info['sourceId']// 出
-    let targetId = info['targetId']// 入
-    console.log(sourceId,targetId)
-    let rtTargetArrs = rtTargetArr(targetId)
-    let rtSouceArrs = rtTargetArr(sourceId)
+    const sourceId = info.sourceId// 出
+    const targetId = info.targetId// 入
     /**
      * Recursive search for nodes
      */
     let recursiveVal
     const recursiveTargetarr = (arr, targetId) => {
-        for (let i in arr) {
-          if (arr[i] === targetId) {
-            recursiveVal = targetId
-          } else {
-            let targetArr = rtTargetArr(arr[i])
-            recursiveTargetarr(targetArr, targetId)
-          }
+      for (const i in arr) {
+        if (arr[i] === targetId) {
+          recursiveVal = targetId
+        } else {
+          recursiveTargetarr(rtTargetarrArr(arr[i]), targetId)
         }
+      }
       return recursiveVal
     }
-    
+
     // Connection to connected nodes is not allowed
-    if (_.findIndex(rtTargetArrs, v => v === sourceId) !== -1) {
-      console.log(rtTargetArrs,'not allowed')
+    if (_.findIndex(rtTargetarrArr(targetId), v => v === sourceId) !== -1) {
       return false
     }
-    
+
     // Recursive form to find if the target Targetarr has a sourceId
-    if (recursiveTargetarr(rtSouceArrs, targetId)) {
-      console.log('has a sourceId')
+    if (recursiveTargetarr(rtTargetarrArr(sourceId), targetId)) {
       return false
     }
-    if ($(`#${sourceId}`).attr('data-tasks-type') === 'CONDITIONS' && parseInt($(`#${sourceId}`).attr('data-nodenumber')) === 2) {
+
+    if ($(`#${sourceId}`).attr('data-tasks-type') === 'CONDITIONS' && $(`#${sourceId}`).attr('data-nodenumber') === 2) {
       return false
     } else {
-      console.log('data-nodenumber')
-      $(`#${sourceId}`).attr('data-nodenumber', parseInt($(`#${sourceId}`).attr('data-nodenumber')) + 1)
+      $(`#${sourceId}`).attr('data-nodenumber', Number($(`#${sourceId}`).attr('data-nodenumber')) + 1)
     }
 
     // Storage node dependency information
@@ -771,6 +783,7 @@ JSP.prototype.jspBackfill = function ({ connects, locations, largeJson }) {
     _.map(connects, v => {
       let sourceId = v.endPointSourceId.split('-')
       let targetId = v.endPointTargetId.split('-')
+      let labels = v.label
       if (sourceId.length === 4 && targetId.length === 4) {
         sourceId = `${sourceId[0]}-${sourceId[1]}-${sourceId[2]}`
         targetId = `${targetId[0]}-${targetId[1]}-${targetId[2]}`
@@ -786,7 +799,7 @@ JSP.prototype.jspBackfill = function ({ connects, locations, largeJson }) {
           type: 'basic',
           paintStyle: { strokeWidth: 2, stroke: '#4caf50' },
           HoverPaintStyle: {stroke: '#ccc', strokeWidth: 3},
-          overlays:[["Label", { label: i18n.$t('success'), location:0.5, id:"label"} ]]
+          overlays:[["Label", { label: labels} ]]
         })
       } else if($(`#${sourceId}`).attr('data-tasks-type') === 'CONDITIONS' && $(`#${sourceId}`).attr('data-failednode') === $(`#${targetId}`).find('.name-p').text()) {
         this.JspInstance.connect({
@@ -795,7 +808,7 @@ JSP.prototype.jspBackfill = function ({ connects, locations, largeJson }) {
           type: 'basic',
           paintStyle: { strokeWidth: 2, stroke: '#252d39' },
           HoverPaintStyle: {stroke: '#ccc', strokeWidth: 3},
-          overlays:[["Label", { label: i18n.$t('failed'), location:0.5, id:"label"} ]]
+          overlays:[["Label", { label: labels} ]]
         })
       } else {
         this.JspInstance.connect({
@@ -803,7 +816,8 @@ JSP.prototype.jspBackfill = function ({ connects, locations, largeJson }) {
           target: targetId,
           type: 'basic',
           paintStyle: { strokeWidth: 2, stroke: '#2d8cf0' },
-          HoverPaintStyle: {stroke: '#ccc', strokeWidth: 3}
+          HoverPaintStyle: {stroke: '#ccc', strokeWidth: 3},
+          overlays:[["Label", { label: labels} ]]
         })
       }
     })

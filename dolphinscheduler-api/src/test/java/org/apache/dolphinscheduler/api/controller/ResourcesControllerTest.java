@@ -16,14 +16,11 @@
  */
 package org.apache.dolphinscheduler.api.controller;
 
-import com.alibaba.fastjson.JSON;
 import org.apache.dolphinscheduler.api.enums.Status;
 import org.apache.dolphinscheduler.api.utils.Result;
-import org.apache.dolphinscheduler.common.enums.ProgramType;
 import org.apache.dolphinscheduler.common.enums.ResourceType;
 import org.apache.dolphinscheduler.common.enums.UdfType;
-import org.apache.dolphinscheduler.common.utils.JSONUtils;
-import com.alibaba.fastjson.JSONObject;
+import org.apache.dolphinscheduler.common.utils.*;
 import org.junit.Assert;
 import org.junit.Test;
 import org.slf4j.Logger;
@@ -55,8 +52,6 @@ public class ResourcesControllerTest extends AbstractControllerTest{
                 .andReturn();
 
         Result result = JSONUtils.parseObject(mvcResult.getResponse().getContentAsString(), Result.class);
-        result.getCode().equals(Status.SUCCESS.getCode());
-        JSONObject object = (JSONObject) JSON.parse(mvcResult.getResponse().getContentAsString());
 
         Assert.assertEquals(Status.SUCCESS.getCode(),result.getCode().intValue());
         logger.info(mvcResult.getResponse().getContentAsString());
@@ -79,8 +74,6 @@ public class ResourcesControllerTest extends AbstractControllerTest{
                 .andReturn();
 
         Result result = JSONUtils.parseObject(mvcResult.getResponse().getContentAsString(), Result.class);
-        result.getCode().equals(Status.SUCCESS.getCode());
-        JSONObject object = (JSONObject) JSON.parse(mvcResult.getResponse().getContentAsString());
 
         Assert.assertEquals(Status.SUCCESS.getCode(),result.getCode().intValue());
         logger.info(mvcResult.getResponse().getContentAsString());
@@ -282,8 +275,6 @@ public class ResourcesControllerTest extends AbstractControllerTest{
                 .andReturn();
 
         Result result = JSONUtils.parseObject(mvcResult.getResponse().getContentAsString(), Result.class);
-        result.getCode().equals(Status.SUCCESS.getCode());
-        JSONObject object = (JSONObject) JSON.parse(mvcResult.getResponse().getContentAsString());
 
         Assert.assertEquals(Status.SUCCESS.getCode(),result.getCode().intValue());
         logger.info(mvcResult.getResponse().getContentAsString());
@@ -304,8 +295,6 @@ public class ResourcesControllerTest extends AbstractControllerTest{
                 .andReturn();
 
         Result result = JSONUtils.parseObject(mvcResult.getResponse().getContentAsString(), Result.class);
-        result.getCode().equals(Status.SUCCESS.getCode());
-        JSONObject object = (JSONObject) JSON.parse(mvcResult.getResponse().getContentAsString());
 
         Assert.assertEquals(Status.SUCCESS.getCode(),result.getCode().intValue());
         logger.info(mvcResult.getResponse().getContentAsString());
@@ -325,8 +314,6 @@ public class ResourcesControllerTest extends AbstractControllerTest{
                 .andReturn();
 
         Result result = JSONUtils.parseObject(mvcResult.getResponse().getContentAsString(), Result.class);
-        result.getCode().equals(Status.SUCCESS.getCode());
-        JSONObject object = (JSONObject) JSON.parse(mvcResult.getResponse().getContentAsString());
 
         Assert.assertEquals(Status.SUCCESS.getCode(),result.getCode().intValue());
         logger.info(mvcResult.getResponse().getContentAsString());
@@ -345,8 +332,6 @@ public class ResourcesControllerTest extends AbstractControllerTest{
                 .andReturn();
 
         Result result = JSONUtils.parseObject(mvcResult.getResponse().getContentAsString(), Result.class);
-        result.getCode().equals(Status.SUCCESS.getCode());
-        JSONObject object = (JSONObject) JSON.parse(mvcResult.getResponse().getContentAsString());
 
         Assert.assertEquals(Status.SUCCESS.getCode(),result.getCode().intValue());
         logger.info(mvcResult.getResponse().getContentAsString());
@@ -366,8 +351,6 @@ public class ResourcesControllerTest extends AbstractControllerTest{
                 .andReturn();
 
         Result result = JSONUtils.parseObject(mvcResult.getResponse().getContentAsString(), Result.class);
-        result.getCode().equals(Status.SUCCESS.getCode());
-        JSONObject object = (JSONObject) JSON.parse(mvcResult.getResponse().getContentAsString());
 
         Assert.assertEquals(Status.SUCCESS.getCode(),result.getCode().intValue());
         logger.info(mvcResult.getResponse().getContentAsString());
@@ -387,8 +370,6 @@ public class ResourcesControllerTest extends AbstractControllerTest{
                 .andReturn();
 
         Result result = JSONUtils.parseObject(mvcResult.getResponse().getContentAsString(), Result.class);
-        result.getCode().equals(Status.SUCCESS.getCode());
-        JSONObject object = (JSONObject) JSON.parse(mvcResult.getResponse().getContentAsString());
 
         Assert.assertEquals(Status.SUCCESS.getCode(),result.getCode().intValue());
         logger.info(mvcResult.getResponse().getContentAsString());
@@ -407,8 +388,6 @@ public class ResourcesControllerTest extends AbstractControllerTest{
                 .andReturn();
 
         Result result = JSONUtils.parseObject(mvcResult.getResponse().getContentAsString(), Result.class);
-        result.getCode().equals(Status.SUCCESS.getCode());
-        JSONObject object = (JSONObject) JSON.parse(mvcResult.getResponse().getContentAsString());
 
         Assert.assertEquals(Status.SUCCESS.getCode(),result.getCode().intValue());
         logger.info(mvcResult.getResponse().getContentAsString());
@@ -428,8 +407,6 @@ public class ResourcesControllerTest extends AbstractControllerTest{
                 .andReturn();
 
         Result result = JSONUtils.parseObject(mvcResult.getResponse().getContentAsString(), Result.class);
-        result.getCode().equals(Status.SUCCESS.getCode());
-        JSONObject object = (JSONObject) JSON.parse(mvcResult.getResponse().getContentAsString());
 
         Assert.assertEquals(Status.SUCCESS.getCode(),result.getCode().intValue());
         logger.info(mvcResult.getResponse().getContentAsString());
@@ -447,32 +424,6 @@ public class ResourcesControllerTest extends AbstractControllerTest{
                 .andReturn();
 
         Result result = JSONUtils.parseObject(mvcResult.getResponse().getContentAsString(), Result.class);
-        result.getCode().equals(Status.SUCCESS.getCode());
-        JSONObject object = (JSONObject) JSON.parse(mvcResult.getResponse().getContentAsString());
-
-        Assert.assertEquals(Status.SUCCESS.getCode(),result.getCode().intValue());
-        logger.info(mvcResult.getResponse().getContentAsString());
-    }
-
-    @Test
-    public void testqueryResourceJarList() throws Exception {
-
-        MultiValueMap<String, String> paramsMap = new LinkedMultiValueMap<>();
-        paramsMap.add("type", ResourceType.FILE.name());
-        //paramsMap.add("programType", ProgramType.PYTHON.name());
-        paramsMap.add("programType", "JAVA");
-
-
-        MvcResult mvcResult = mockMvc.perform(get("/resources/list/jar")
-                .header(SESSION_ID, sessionId)
-                .params(paramsMap))
-                .andExpect(status().isOk())
-                .andExpect(content().contentType(MediaType.APPLICATION_JSON_UTF8))
-                .andReturn();
-
-        Result result = JSONUtils.parseObject(mvcResult.getResponse().getContentAsString(), Result.class);
-        result.getCode().equals(Status.SUCCESS.getCode());
-        JSONObject object = (JSONObject) JSON.parse(mvcResult.getResponse().getContentAsString());
 
         Assert.assertEquals(Status.SUCCESS.getCode(),result.getCode().intValue());
         logger.info(mvcResult.getResponse().getContentAsString());

@@ -17,11 +17,14 @@
 
 package org.apache.dolphinscheduler.server.master.processor.queue;
 
-import io.netty.channel.Channel;
+import com.fasterxml.jackson.annotation.JsonFormat;
+
 import org.apache.dolphinscheduler.common.enums.Event;
 import org.apache.dolphinscheduler.common.enums.ExecutionStatus;
 
 import java.util.Date;
+
+import io.netty.channel.Channel;
 
 /**
  * task event
@@ -46,11 +49,13 @@ public class TaskResponseEvent {
     /**
      * start time
      */
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss",timezone="GMT+8")
     private Date startTime;
 
     /**
      * end time
      */
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss",timezone="GMT+8")
     private Date endTime;
 
     /**
@@ -79,17 +84,22 @@ public class TaskResponseEvent {
     private Event event;
 
     /**
+     * varPool
+     */
+    private String varPool;
+
+    /**
      * channel
      */
     private Channel channel;
-
+    
     public static TaskResponseEvent newAck(ExecutionStatus state,
                                            Date startTime,
                                            String workerAddress,
                                            String executePath,
                                            String logPath,
                                            int taskInstanceId,
-                                           Channel channel){
+                                           Channel channel) {
         TaskResponseEvent event = new TaskResponseEvent();
         event.setState(state);
         event.setStartTime(startTime);
@@ -107,7 +117,8 @@ public class TaskResponseEvent {
                                               int processId,
                                               String appIds,
                                               int taskInstanceId,
-                                              Channel channel){
+                                              String varPool,
+                                              Channel channel) {
         TaskResponseEvent event = new TaskResponseEvent();
         event.setState(state);
         event.setEndTime(endTime);
@@ -115,10 +126,19 @@ public class TaskResponseEvent {
         event.setAppIds(appIds);
         event.setTaskInstanceId(taskInstanceId);
         event.setEvent(Event.RESULT);
+        event.setVarPool(varPool);
         event.setChannel(channel);
         return event;
     }
 
+    public String getVarPool() {
+        return varPool;
+    }
+
+    public void setVarPool(String varPool) {
+        this.varPool = varPool;
+    }
+    
     public int getTaskInstanceId() {
         return taskInstanceId;
     }

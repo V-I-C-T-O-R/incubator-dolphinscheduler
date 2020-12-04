@@ -228,8 +228,9 @@ The text of each license is also included at licenses/LICENSE-[project].txt.
     byte-buddy 1.9.10: https://mvnrepository.com/artifact/net.bytebuddy/byte-buddy/1.9.10, Apache 2.0
     classmate 1.4.0: https://mvnrepository.com/artifact/com.fasterxml/classmate/1.4.0, Apache 2.0
     clickhouse-jdbc 0.1.52: https://mvnrepository.com/artifact/ru.yandex.clickhouse/clickhouse-jdbc/0.1.52, Apache 2.0
+    commons-beanutils 1.7.0 https://mvnrepository.com/artifact/commons-beanutils/commons-beanutils/1.7.0, Apache 2.0
     commons-cli 1.2: https://mvnrepository.com/artifact/commons-cli/commons-cli/1.2, Apache 2.0
-    commons-codec 1.6: https://mvnrepository.com/artifact/commons-codec/commons-codec/1.6, Apache 2.0
+    commons-codec 1.11: https://mvnrepository.com/artifact/commons-codec/commons-codec/1.11, Apache 2.0
     commons-collections 3.2.2: https://mvnrepository.com/artifact/commons-collections/commons-collections/3.2.2, Apache 2.0
     commons-collections4 4.1: https://mvnrepository.com/artifact/org.apache.commons/commons-collections4/4.1, Apache 2.0
     commons-compress 1.4.1: https://mvnrepository.com/artifact/org.apache.commons/commons-compress/1.4.1, Apache 2.0
@@ -253,7 +254,6 @@ The text of each license is also included at licenses/LICENSE-[project].txt.
     datanucleus-rdbms 4.1.7: https://mvnrepository.com/artifact/org.datanucleus/datanucleus-rdbms/4.1.7, Apache 2.0
     derby 10.14.2.0: https://github.com/apache/derby, Apache 2.0
     druid 1.1.14: https://mvnrepository.com/artifact/com.alibaba/druid/1.1.14, Apache 2.0
-    fastjson 1.2.61: https://mvnrepository.com/artifact/com.alibaba/fastjson/1.2.61, Apache 2.0
     gson 2.8.5: https://github.com/google/gson, Apache 2.0
     guava 20.0: https://mvnrepository.com/artifact/com.google.guava/guava/20.0, Apache 2.0
     guice 3.0: https://mvnrepository.com/artifact/com.google.inject/guice/3.0, Apache 2.0
@@ -321,7 +321,7 @@ The text of each license is also included at licenses/LICENSE-[project].txt.
     joda-time 2.10.1: https://github.com/JodaOrg/joda-time, Apache 2.0
     jpam 1.1: https://mvnrepository.com/artifact/net.sf.jpam/jpam/1.1, Apache 2.0
     jsqlparser 2.1: https://github.com/JSQLParser/JSqlParser, Apache 2.0 or LGPL 2.1
-    jsp-api-2.1 6.1.14: https://mvnrepository.com/artifact/org.mortbay.jetty/jsp-api-2.1/6.1.14, Apache 2.0 
+    jsp-api-2.1 6.1.14: https://mvnrepository.com/artifact/org.mortbay.jetty/jsp-api-2.1/6.1.14, Apache 2.0
     jsr305 3.0.0: https://mvnrepository.com/artifact/com.google.code.findbugs/jsr305, Apache 2.0
     libfb303 0.9.3: https://mvnrepository.com/artifact/org.apache.thrift/libfb303/0.9.3, Apache 2.0
     libthrift 0.9.3: https://mvnrepository.com/artifact/org.apache.thrift/libthrift/0.9.3, Apache 2.0
@@ -348,20 +348,20 @@ The text of each license is also included at licenses/LICENSE-[project].txt.
     snakeyaml 1.23: https://mvnrepository.com/artifact/org.yaml/snakeyaml/1.23, Apache 2.0
     snappy 0.2: https://mvnrepository.com/artifact/org.iq80.snappy/snappy/0.2, Apache 2.0
     snappy-java 1.0.4.1: https://github.com/xerial/snappy-java, Apache 2.0
-    spring-aop 5.1.5.RELEASE: https://mvnrepository.com/artifact/org.springframework/spring-aop/5.1.5.RELEASE, Apache 2.0
-    spring-beans 5.1.5.RELEASE: https://mvnrepository.com/artifact/org.springframework/spring-beans/5.1.5.RELEASE, Apache 2.0
-    spring-boot 2.1.3.RELEASE: https://mvnrepository.com/artifact/org.springframework.boot/spring-boot/2.1.3.RELEASE, Apache 2.0
-    spring-boot-autoconfigure 2.1.3.RELEASE: https://mvnrepository.com/artifact/org.springframework.boot/spring-boot-autoconfigure/2.1.3.RELEASE, Apache 2.0
-    spring-boot-starter 2.1.3.RELEASE: https://mvnrepository.com/artifact/org.springframework.boot/spring-boot-starter/2.1.3.RELEASE, Apache 2.0
-    spring-boot-starter-aop 2.1.3.RELEASE: https://mvnrepository.com/artifact/org.springframework.boot/spring-boot-starter-aop/2.1.3.RELEASE, Apache 2.0
-    spring-boot-starter-jdbc 2.1.3.RELEASE: https://mvnrepository.com/artifact/org.springframework.boot/spring-boot-starter-jdbc/2.1.3.RELEASE, Apache 2.0
-    spring-boot-starter-jetty 2.1.3.RELEASE: https://mvnrepository.com/artifact/org.springframework.boot/spring-boot-starter-jetty/2.1.3.RELEASE, Apache 2.0
-    spring-boot-starter-json 2.1.3.RELEASE: https://mvnrepository.com/artifact/org.springframework.boot/spring-boot-starter-json/2.1.3.RELEASE, Apache 2.0
-    spring-boot-starter-logging 2.1.3.RELEASE: https://mvnrepository.com/artifact/org.springframework.boot/spring-boot-starter-logging/2.1.3.RELEASE, Apache 2.0
-    spring-boot-starter-web 2.1.3.RELEASE: https://mvnrepository.com/artifact/org.springframework.boot/spring-boot-starter-web/2.1.3.RELEASE, Apache 2.0
-    spring-context 5.1.5.RELEASE: https://mvnrepository.com/artifact/org.springframework/spring-context/5.1.5.RELEASE, Apache 2.0
-    spring-core 5.1.5.RELEASE: https://mvnrepository.com/artifact/org.springframework/spring-core, Apache 2.0
-    spring-expression 5.1.5.RELEASE: https://mvnrepository.com/artifact/org.springframework/spring-expression, Apache 2.0
+    spring-aop 5.1.18.RELEASE: https://mvnrepository.com/artifact/org.springframework/spring-aop/5.1.18.RELEASE, Apache 2.0
+    spring-beans 5.1.18.RELEASE: https://mvnrepository.com/artifact/org.springframework/spring-beans/5.1.18.RELEASE, Apache 2.0
+    spring-boot 2.1.17.RELEASE: https://mvnrepository.com/artifact/org.springframework.boot/spring-boot/2.1.17.RELEASE, Apache 2.0
+    spring-boot-autoconfigure 2.1.17.RELEASE: https://mvnrepository.com/artifact/org.springframework.boot/spring-boot-autoconfigure/2.1.17.RELEASE, Apache 2.0
+    spring-boot-starter 2.1.17.RELEASE: https://mvnrepository.com/artifact/org.springframework.boot/spring-boot-starter/2.1.17.RELEASE, Apache 2.0
+    spring-boot-starter-aop 2.1.17.RELEASE: https://mvnrepository.com/artifact/org.springframework.boot/spring-boot-starter-aop/2.1.17.RELEASE, Apache 2.0
+    spring-boot-starter-jdbc 2.1.17.RELEASE: https://mvnrepository.com/artifact/org.springframework.boot/spring-boot-starter-jdbc/2.1.17.RELEASE, Apache 2.0
+    spring-boot-starter-jetty 2.1.17.RELEASE: https://mvnrepository.com/artifact/org.springframework.boot/spring-boot-starter-jetty/2.1.17.RELEASE, Apache 2.0
+    spring-boot-starter-json 2.1.17.RELEASE: https://mvnrepository.com/artifact/org.springframework.boot/spring-boot-starter-json/2.1.17.RELEASE, Apache 2.0
+    spring-boot-starter-logging 2.1.17.RELEASE: https://mvnrepository.com/artifact/org.springframework.boot/spring-boot-starter-logging/2.1.17.RELEASE, Apache 2.0
+    spring-boot-starter-web 2.1.17.RELEASE: https://mvnrepository.com/artifact/org.springframework.boot/spring-boot-starter-web/2.1.17.RELEASE, Apache 2.0
+    spring-context 5.1.18.RELEASE: https://mvnrepository.com/artifact/org.springframework/spring-context/5.1.18.RELEASE, Apache 2.0
+    spring-core 5.1.18.RELEASE: https://mvnrepository.com/artifact/org.springframework/spring-core/5.1.18.RELEASE, Apache 2.0
+    spring-expression 5.1.18.RELEASE: https://mvnrepository.com/artifact/org.springframework/spring-expression/5.1.18.RELEASE, Apache 2.0
     springfox-core 2.9.2: https://mvnrepository.com/artifact/io.springfox/springfox-core, Apache 2.0
     springfox-schema 2.9.2: https://mvnrepository.com/artifact/io.springfox/springfox-schema, Apache 2.0
     springfox-spi 2.9.2: https://mvnrepository.com/artifact/io.springfox/springfox-spi, Apache 2.0
@@ -369,13 +369,13 @@ The text of each license is also included at licenses/LICENSE-[project].txt.
     springfox-swagger2 2.9.2: https://mvnrepository.com/artifact/io.springfox/springfox-swagger2/2.9.2, Apache 2.0
     springfox-swagger-common 2.9.2: https://mvnrepository.com/artifact/io.springfox/springfox-swagger-common/2.9.2, Apache 2.0
     springfox-swagger-ui 2.9.2: https://mvnrepository.com/artifact/io.springfox/springfox-swagger-ui/2.9.2, Apache 2.0
-    spring-jcl 5.1.5.RELEASE: https://mvnrepository.com/artifact/org.springframework/spring-jcl/5.1.5.RELEASE, Apache 2.0
-    spring-jdbc 5.1.5.RELEASE: https://mvnrepository.com/artifact/org.springframework/spring-jdbc/5.1.5.RELEASE, Apache 2.0
+    spring-jcl 5.1.18.RELEASE: https://mvnrepository.com/artifact/org.springframework/spring-jcl/5.1.18.RELEASE, Apache 2.0
+    spring-jdbc 5.1.18.RELEASE: https://mvnrepository.com/artifact/org.springframework/spring-jdbc/5.1.18.RELEASE, Apache 2.0
     spring-plugin-core 1.2.0.RELEASE: https://mvnrepository.com/artifact/org.springframework.plugin/spring-plugin-core/1.2.0.RELEASE, Apache 2.0
     spring-plugin-metadata 1.2.0.RELEASE: https://mvnrepository.com/artifact/org.springframework.plugin/spring-plugin-metadata/1.2.0.RELEASE, Apache 2.0
-    spring-tx 5.1.5.RELEASE: https://mvnrepository.com/artifact/org.springframework/spring-tx/5.1.5.RELEASE, Apache 2.0
-    spring-web 5.1.5.RELEASE: https://mvnrepository.com/artifact/org.springframework/spring-web/5.1.5.RELEASE, Apache 2.0
-    spring-webmvc 5.1.5.RELEASE: https://mvnrepository.com/artifact/org.springframework/spring-webmvc/5.1.5.RELEASE, Apache 2.0
+    spring-tx 5.1.18.RELEASE: https://mvnrepository.com/artifact/org.springframework/spring-tx/5.1.18.RELEASE, Apache 2.0
+    spring-web 5.1.18.RELEASE: https://mvnrepository.com/artifact/org.springframework/spring-web/5.1.18.RELEASE, Apache 2.0
+    spring-webmvc 5.1.18.RELEASE: https://mvnrepository.com/artifact/org.springframework/spring-webmvc/5.1.18.RELEASE, Apache 2.0
     swagger-annotations 1.5.20: https://mvnrepository.com/artifact/io.swagger/swagger-annotations/1.5.20, Apache 2.0
     swagger-bootstrap-ui 1.9.3: https://mvnrepository.com/artifact/com.github.xiaoymin/swagger-bootstrap-ui/1.9.3, Apache 2.0
     swagger-models 1.5.20: https://mvnrepository.com/artifact/io.swagger/swagger-models/1.5.20, Apache 2.0
@@ -384,6 +384,7 @@ The text of each license is also included at licenses/LICENSE-[project].txt.
     xercesImpl 2.9.1: https://mvnrepository.com/artifact/xerces/xercesImpl/2.9.1, Apache 2.0
     xml-apis 1.4.01: https://mvnrepository.com/artifact/xml-apis/xml-apis/1.4.01, Apache 2.0 and W3C
     zookeeper 3.4.14: https://mvnrepository.com/artifact/org.apache.zookeeper/zookeeper/3.4.14, Apache 2.0
+    presto-jdbc 0.238.1 https://mvnrepository.com/artifact/com.facebook.presto/presto-jdbc/0.238.1
 
 
 ========================================================================
@@ -426,7 +427,7 @@ The text of each license is also included at licenses/LICENSE-[project].txt.
     jersey-json 1.9: https://mvnrepository.com/artifact/com.sun.jersey/jersey-json/1.9, CDDL 1.1 and GPL 1.1
     jersey-server 1.9: https://mvnrepository.com/artifact/com.sun.jersey/jersey-server/1.9, CDDL 1.1 and GPL 1.1
     jsp-2.1 6.1.14 https://mvnrepository.com/artifact/org.mortbay.jetty/jsp-2.1/6.1.14, CDDL 1.0
-    
+
     jta 1.1: https://mvnrepository.com/artifact/javax.transaction/jta/1.1, CDDL 1.0
     transaction-api 1.1: https://mvnrepository.com/artifact/javax.transaction/transaction-api/1.1, CDDL 1.0
 
@@ -501,6 +502,7 @@ MIT licenses
     vue-router 2.7.0: https://github.com/vuejs/vue-router MIT
     vuex 3.0.0: https://github.com/vuejs/vuex MIT
     vuex-router-sync 4.1.2: https://github.com/vuejs/vuex-router-sync MIT
+    dagre 0.8.5: https://github.com/dagrejs/dagre MIT
 
 ========================================
 Apache 2.0 licenses

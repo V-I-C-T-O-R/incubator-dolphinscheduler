@@ -18,6 +18,7 @@
 package org.apache.dolphinscheduler.dao.utils;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+
 import org.apache.dolphinscheduler.common.Constants;
 import org.apache.dolphinscheduler.common.enums.ExecutionStatus;
 import org.apache.dolphinscheduler.common.enums.TaskDependType;
@@ -25,7 +26,7 @@ import org.apache.dolphinscheduler.common.graph.DAG;
 import org.apache.dolphinscheduler.common.model.TaskNode;
 import org.apache.dolphinscheduler.common.model.TaskNodeRelation;
 import org.apache.dolphinscheduler.common.process.ProcessDag;
-import org.apache.dolphinscheduler.common.utils.JSONUtils;
+import org.apache.dolphinscheduler.common.utils.*;
 import org.apache.dolphinscheduler.dao.entity.ProcessData;
 import org.apache.dolphinscheduler.dao.entity.TaskInstance;
 
@@ -151,6 +152,7 @@ public class DagHelperTest {
 
     /**
      * test forbidden post node
+     *
      * @throws JsonProcessingException
      */
     @Test
@@ -188,6 +190,7 @@ public class DagHelperTest {
 
     /**
      * test condition post node
+     *
      * @throws JsonProcessingException
      */
     @Test
@@ -203,11 +206,16 @@ public class DagHelperTest {
         completeTaskList.put("4", new TaskInstance());
         TaskNode node3 = dag.getNode("3");
         node3.setType("CONDITIONS");
-        node3.setConditionResult("{\n" +
-                "                \"successNode\": [5\n" +
-                "                ],\n" +
-                "                \"failedNode\": [6\n" +
-                "                ]\n" +
+        node3.setConditionResult("{\n"
+                +
+                "                \"successNode\": [5\n"
+                +
+                "                ],\n"
+                +
+                "                \"failedNode\": [6\n"
+                +
+                "                ]\n"
+                +
                 "            }");
         completeTaskList.remove("3");
         TaskInstance taskInstance = new TaskInstance();
@@ -220,7 +228,7 @@ public class DagHelperTest {
 
         //2.complete 1/2/3/4/8 expect:5 skip:6
         completeTaskList.put("8", new TaskInstance());
-        postNodes = DagHelper.parsePostNodes(null ,skipNodeList, dag, completeTaskList);
+        postNodes = DagHelper.parsePostNodes(null, skipNodeList, dag, completeTaskList);
         Assert.assertTrue(postNodes.contains("5"));
         Assert.assertEquals(1, skipNodeList.size());
         Assert.assertTrue(skipNodeList.containsKey("6"));
@@ -344,10 +352,14 @@ public class DagHelperTest {
 
     @Test
     public void testBuildDagGraph() {
-        String shellJson = "{\"globalParams\":[],\"tasks\":[{\"type\":\"SHELL\",\"id\":\"tasks-9527\",\"name\":\"shell-1\"," +
-                "\"params\":{\"resourceList\":[],\"localParams\":[],\"rawScript\":\"#!/bin/bash\\necho \\\"shell-1\\\"\"}," +
-                "\"description\":\"\",\"runFlag\":\"NORMAL\",\"dependence\":{},\"maxRetryTimes\":\"0\",\"retryInterval\":\"1\"," +
-                "\"timeout\":{\"strategy\":\"\",\"interval\":1,\"enable\":false},\"taskInstancePriority\":\"MEDIUM\"," +
+        String shellJson = "{\"globalParams\":[],\"tasks\":[{\"type\":\"SHELL\",\"id\":\"tasks-9527\",\"name\":\"shell-1\","
+                +
+                "\"params\":{\"resourceList\":[],\"localParams\":[],\"rawScript\":\"#!/bin/bash\\necho \\\"shell-1\\\"\"},"
+                +
+                "\"description\":\"\",\"runFlag\":\"NORMAL\",\"dependence\":{},\"maxRetryTimes\":\"0\",\"retryInterval\":\"1\","
+                +
+                "\"timeout\":{\"strategy\":\"\",\"interval\":1,\"enable\":false},\"taskInstancePriority\":\"MEDIUM\","
+                +
                 "\"workerGroupId\":-1,\"preTasks\":[]}],\"tenantId\":1,\"timeout\":0}";
 
         ProcessData processData = JSONUtils.parseObject(shellJson, ProcessData.class);

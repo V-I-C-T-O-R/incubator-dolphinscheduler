@@ -14,10 +14,24 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.apache.dolphinscheduler.server.worker.registry;
 
+import static org.apache.dolphinscheduler.common.Constants.COLON;
 import static org.apache.dolphinscheduler.common.Constants.DEFAULT_WORKER_GROUP;
 import static org.apache.dolphinscheduler.common.Constants.SLASH;
+
+import org.apache.dolphinscheduler.common.utils.DateUtils;
+import org.apache.dolphinscheduler.common.utils.NetUtils;
+import org.apache.dolphinscheduler.common.utils.StringUtils;
+import org.apache.dolphinscheduler.remote.utils.NamedThreadFactory;
+import org.apache.dolphinscheduler.server.registry.HeartBeatTask;
+import org.apache.dolphinscheduler.server.registry.ZookeeperRegistryCenter;
+import org.apache.dolphinscheduler.server.worker.config.WorkerConfig;
+
+import org.apache.curator.framework.CuratorFramework;
+import org.apache.curator.framework.state.ConnectionState;
+import org.apache.curator.framework.state.ConnectionStateListener;
 
 import java.util.Date;
 import java.util.Set;
@@ -27,28 +41,16 @@ import java.util.concurrent.TimeUnit;
 
 import javax.annotation.PostConstruct;
 
-import org.apache.curator.framework.CuratorFramework;
-import org.apache.curator.framework.state.ConnectionState;
-import org.apache.curator.framework.state.ConnectionStateListener;
-import org.apache.dolphinscheduler.common.Constants;
-import org.apache.dolphinscheduler.common.utils.DateUtils;
-import org.apache.dolphinscheduler.common.utils.OSUtils;
-import org.apache.dolphinscheduler.common.utils.StringUtils;
-import org.apache.dolphinscheduler.remote.utils.NamedThreadFactory;
-import org.apache.dolphinscheduler.server.registry.HeartBeatTask;
-import org.apache.dolphinscheduler.server.registry.ZookeeperRegistryCenter;
-import org.apache.dolphinscheduler.server.worker.config.WorkerConfig;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.google.common.collect.Sets;
-import com.google.common.collect.Sets;
 
 
 /**
- *  worker registry
+ * worker registry
  */
 @Service
 public class WorkerRegistry {
@@ -56,13 +58,13 @@ public class WorkerRegistry {
     private final Logger logger = LoggerFactory.getLogger(WorkerRegistry.class);
 
     /**
-     *  zookeeper registry center
+     * zookeeper registry center
      */
     @Autowired
     private ZookeeperRegistryCenter zookeeperRegistryCenter;
 
     /**
-     *  worker config
+     * worker config
      */
     @Autowired
     private WorkerConfig workerConfig;
@@ -81,17 +83,17 @@ public class WorkerRegistry {
     private Set<String> workerGroups;
 
     @PostConstruct
-    public void init(){
+    public void init() {
         this.workerGroups = workerConfig.getWorkerGroups();
         this.startTime = DateUtils.dateToString(new Date());
         this.heartBeatExecutor = Executors.newSingleThreadScheduledExecutor(new NamedThreadFactory("HeartBeatExecutor"));
     }
 
     /**
-     *  registry
+     * registry
      */
     public void registry() {
-        String address = OSUtils.getHost();
+        String address = NetUtils.getHost();
         Set<String> workerZkPaths = getWorkerZkPaths();
         int workerHeartbeatInterval = workerConfig.getWorkerHeartbeatInterval();
 
@@ -114,17 +116,17 @@ public class WorkerRegistry {
         }
 
         HeartBeatTask heartBeatTask = new HeartBeatTask(this.startTime,
-                this.workerConfig.getWorkerReservedMemory(),
-                this.workerConfig.getWorkerMaxCpuloadAvg(),
-                workerZkPaths,
-                this.zookeeperRegistryCenter);
+            this.workerConfig.getWorkerReservedMemory(),
+            this.workerConfig.getWorkerMaxCpuloadAvg(),
+            workerZkPaths,
+            this.zookeeperRegistryCenter);
 
         this.heartBeatExecutor.scheduleAtFixedRate(heartBeatTask, workerHeartbeatInterval, workerHeartbeatInterval, TimeUnit.SECONDS);
         logger.info("worker node : {} heartbeat interval {} s", address, workerHeartbeatInterval);
     }
 
     /**
-     *  remove registry info
+     * remove registry info
      */
     public void unRegistry() {
         String address = getLocalAddress();
@@ -137,13 +139,15 @@ public class WorkerRegistry {
     }
 
     /**
-     *  get worker path
+     * get worker path
      */
     private Set<String> getWorkerZkPaths() {
         Set<String> workerZkPaths = Sets.newHashSet();
 
         String address = getLocalAddress();
         String workerZkPathPrefix = this.zookeeperRegistryCenter.getWorkerPath();
+        String weight = getWorkerWeight();
+        String workerStartTime = COLON + System.currentTimeMillis();
 
         for (String workGroup : this.workerGroups) {
             StringBuilder workerZkPathBuilder = new StringBuilder(100);
@@ -154,6 +158,8 @@ public class WorkerRegistry {
             // trim and lower case is need
             workerZkPathBuilder.append(workGroup.trim().toLowerCase()).append(SLASH);
             workerZkPathBuilder.append(address);
+            workerZkPathBuilder.append(weight);
+            workerZkPathBuilder.append(workerStartTime);
             workerZkPaths.add(workerZkPathBuilder.toString());
         }
         return workerZkPaths;
@@ -161,10 +167,16 @@ public class WorkerRegistry {
 
     /**
      * get local address
-     * @return local address
      */
-    private String getLocalAddress(){
-        return OSUtils.getHost() + Constants.COLON + workerConfig.getListenPort();
+    private String getLocalAddress() {
+        return NetUtils.getHost() + COLON + workerConfig.getListenPort();
+    }
+
+    /**
+     * get Worker Weight
+     */
+    private String getWorkerWeight() {
+        return COLON + workerConfig.getWeight();
     }
 
 }

@@ -109,7 +109,6 @@ export default {
     state.processListS = (payload && payload.processListS) || []
     state.resourcesListS = (payload && payload.resourcesListS) || []
     state.resourcesListJar = (payload && payload.resourcesListJar) || []
-    state.resourcesListPy = (payload && payload.resourcesListPy) || []
     state.projectListS = (payload && payload.projectListS) || []
     state.isDetails = (payload && payload.isDetails) || false
     state.runFlag = (payload && payload.runFlag) || ''
@@ -121,7 +120,7 @@ export default {
    * object {}
    */
   addTasks (state, payload) {
-    let i = _.findIndex(state.tasks, v => v.id === payload.id)
+    const i = _.findIndex(state.tasks, v => v.id === payload.id)
     if (i !== -1) {
       state.tasks[i] = Object.assign(state.tasks[i], {}, payload)
     } else {
@@ -132,13 +131,21 @@ export default {
     } else {
       state.cacheTasks[payload.id] = payload
     }
-    let dom = $(`#${payload.id}`)
+    const dom = $(`#${payload.id}`)
     state.locations[payload.id] = _.assign(state.locations[payload.id], {
       name: dom.find('.name-p').text(),
       targetarr: dom.attr('data-targetarr'),
       nodenumber: dom.attr('data-nodenumber'),
       x: parseInt(dom.css('left'), 10),
       y: parseInt(dom.css('top'), 10)
+    })
+  },
+  addConnects(state, payload) {
+    state.connects = _.map(state.connects, v => {
+      if(v.endPointSourceId===payload.sourceId && v.endPointTargetId===payload.targetId) {
+        v.label = payload.labelName
+      }
+      return v
     })
   },
   /**

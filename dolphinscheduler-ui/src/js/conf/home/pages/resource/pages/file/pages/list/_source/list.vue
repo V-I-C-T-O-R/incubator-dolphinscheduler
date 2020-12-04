@@ -40,7 +40,7 @@
           <th scope="col" width="140">
             <span>{{$t('Update Time')}}</span>
           </th>
-          <th scope="col" width="160">
+          <th scope="col" width="140">
             <span>{{$t('Operation')}}</span>
           </th>
         </tr>
@@ -79,18 +79,6 @@
                     @click="_edit(item,$index)"
                     icon="ans-icon-edit">
             </x-button>
-
-            <x-button
-                    type="info"
-                    shape="circle"
-                    size="xsmall"
-                    data-toggle="tooltip"
-                    :title="$t('ReUpload File')"
-                    :disabled="item.directory? true: false"
-                    @click="_reUpload(item)"
-                    icon="ans-icon-upload">
-            </x-button>
-
             <x-button
                     type="info"
                     shape="circle"
@@ -115,11 +103,11 @@
             <x-poptip
                     :ref="'poptip-' + $index"
                     placement="bottom-end"
-                    width="190">
+                    width="90">
               <p>{{$t('Delete?')}}</p>
               <div style="text-align: right; margin: 0;padding-top: 4px;">
                 <x-button type="text" size="xsmall" shape="circle" @click="_closeDelete($index)">{{$t('Cancel')}}</x-button>
-                <x-button type="primary" size="xsmall" shape="circle" :loading="spinnerLoading" @click="_delete(item,$index)">{{spinnerLoading ? 'Loading' : $t('Confirm')}}</x-button>
+                <x-button type="primary" size="xsmall" shape="circle" @click="_delete(item,$index)">{{$t('Confirm')}}</x-button>
               </div>
               <template slot="reference">
                 <x-button
@@ -144,15 +132,13 @@
   import { mapActions } from 'vuex'
   import { filtTypeArr } from '../../_source/common'
   import { bytesToSize } from '@/module/util/util'
-  import { findComponentDownward } from '@/module/util'
   import { downloadFile } from '@/module/download'
   import localStore from '@/module/util/localStorage'
   export default {
     name: 'file-manage-list',
     data () {
       return {
-        list: [],
-        spinnerLoading: false
+        list: []
       }
     },
     props: {
@@ -175,11 +161,8 @@
           this.$router.push({ path: `/resource/file/list/${item.id}` })
         }
       },
-      _reUpload (item) {
-        findComponentDownward(this.$root, 'roof-nav')._fileReUpload('FILE',item)
-      },
       _downloadFile (item) {
-        downloadFile('/dolphinscheduler/resources/download', {
+        downloadFile('resources/download', {
           id: item.id
         })
       },
@@ -190,18 +173,15 @@
         this.$refs[`poptip-${i}`][0].doClose()
       },
       _delete (item, i) {
-        this.spinnerLoading = true
         this.deleteResource({
           id: item.id
         }).then(res => {
           this.$refs[`poptip-${i}`][0].doClose()
           this.$emit('on-update')
           this.$message.success(res.msg)
-          this.spinnerLoading = false
         }).catch(e => {
           this.$refs[`poptip-${i}`][0].doClose()
           this.$message.error(e.msg || '')
-          this.spinnerLoading = false
         })
       },
       _rename (item, i) {

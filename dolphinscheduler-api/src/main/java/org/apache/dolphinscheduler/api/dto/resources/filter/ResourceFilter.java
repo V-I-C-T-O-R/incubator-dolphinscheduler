@@ -31,11 +31,16 @@ public class ResourceFilter implements IFilter {
     /**
      * resource suffix
      */
-    private Set<String> suffixs = new HashSet<>();
+    private String suffix;
     /**
      * resource list
      */
     private List<Resource> resourceList;
+
+    /**
+     * parent list
+     */
+    //Set<Resource> parentList =  new HashSet<>();
 
     /**
      * constructor
@@ -43,17 +48,7 @@ public class ResourceFilter implements IFilter {
      * @param resourceList  resource list
      */
     public ResourceFilter(String suffix, List<Resource> resourceList) {
-        this.suffixs.add(suffix);
-        this.resourceList = resourceList;
-    }
-
-    /**
-     * constructor
-     * @param suffixs        resource suffixs
-     * @param resourceList  resource list
-     */
-    public ResourceFilter(Set<String> suffixs, List<Resource> resourceList) {
-        this.suffixs = suffixs;
+        this.suffix = suffix;
         this.resourceList = resourceList;
     }
 
@@ -62,17 +57,10 @@ public class ResourceFilter implements IFilter {
      * @return file filtered by suffix
      */
     public Set<Resource> fileFilter(){
-        Set<Resource> resources = resourceList.stream().filter(t -> {
+        return resourceList.stream().filter(t -> {
             String alias = t.getAlias();
-            boolean result = false;
-            for (String suffix : suffixs) {
-                if (alias.endsWith(suffix)) {
-                    result = true;
-                }
-            }
-            return result;
+            return alias.endsWith(suffix);
         }).collect(Collectors.toSet());
-        return resources;
     }
 
     /**

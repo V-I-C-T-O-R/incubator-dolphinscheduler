@@ -14,22 +14,23 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.apache.dolphinscheduler.remote.config;
 
 import org.apache.dolphinscheduler.remote.utils.Constants;
 
 /**
- *  netty client config
+ * netty client config
  */
 public class NettyClientConfig {
 
     /**
-     *  worker threads，default get machine cpus
+     * worker threads，default get machine cpus
      */
     private int workerThreads = Constants.CPUS;
 
     /**
-     *  whether tpc delay
+     * whether tpc delay
      */
     private boolean tcpNoDelay = true;
 
@@ -39,12 +40,12 @@ public class NettyClientConfig {
     private boolean soKeepalive = true;
 
     /**
-     *  send buffer size
+     * send buffer size
      */
     private int sendBufferSize = 65535;
 
     /**
-     *  receive buffer size
+     * receive buffer size
      */
     private int receiveBufferSize = 65535;
 

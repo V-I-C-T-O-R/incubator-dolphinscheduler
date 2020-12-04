@@ -14,13 +14,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.apache.dolphinscheduler.remote.utils;
 
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 
 /**
- *  constant
+ * constant
  */
 public class Constants {
 
@@ -33,12 +34,12 @@ public class Constants {
     public static final int NETTY_CLIENT_HEART_BEAT_TIME = 1000 * 60;
 
     /**
-     *  charset
+     * charset
      */
     public static final Charset UTF8 = StandardCharsets.UTF_8;
 
     /**
-     *  cpus
+     * cpus
      */
     public static final int CPUS = Runtime.getRuntime().availableProcessors();
 
@@ -54,5 +55,10 @@ public class Constants {
      * OS Name
      */
     public static final String OS_NAME = System.getProperty("os.name");
+
+    /**
+     * warm up time
+     */
+    public static final int WARM_UP_TIME = 10 * 60 * 1000;
 
 }
